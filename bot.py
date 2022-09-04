@@ -15,6 +15,7 @@ from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.destination import Destination
 from space_tycoon_client.models.end_turn import EndTurn
 from space_tycoon_client.models.move_command import MoveCommand
+from space_tycoon_client.models.construct_command import ConstructCommand
 from space_tycoon_client.models.player import Player
 from space_tycoon_client.models.player_id import PlayerId
 from space_tycoon_client.models.ship import Ship
@@ -77,6 +78,10 @@ class Game:
         self.recreate_me()
         my_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                 self.data.ships.items() if ship.player == self.player_id}
+        enemy_shippers: Dict[Ship] = {ship_id: ship for ship_id, ship in
+                                self.data.ships.items() if ship.player != self.player_id and ship.ship_class == 3}
+        mothership_id: str = [ship_id for ship_id, ship in my_ships.items() if ship.ship_class == 1][0]
+
         ship_type_cnt = Counter(
             (self.static_data.ship_classes[ship.ship_class].name for ship in my_ships.values()))
         pretty_ship_type_cnt = ', '.join(
@@ -90,6 +95,7 @@ class Game:
             random_planet_id = random.choice(list(self.data.planets.keys()))
             print(f"sending {ship_id} to {self.data.planets[random_planet_id].name}({random_planet_id})")
             commands[ship_id] = MoveCommand(type="move", destination=Destination(target=random_planet_id))
+        commands[mothership_id] = ConstructCommand(4)
 
         pprint(commands) if commands else None
         try:
