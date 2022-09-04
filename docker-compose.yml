@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  client-gen:
+    image: openapitools/openapi-generator-cli
+    command: >
+      generate
+      -i https://raw.githubusercontent.com/gdg-garage/space-tycoon/master/api/swagger.yaml
+      -g python
+      -o /space_tycoon_generated_client
+      --additional-properties=packageName=space_tycoon_client
+    volumes:
+      - "./space_tycoon_generated_client:/space_tycoon_generated_client"
+
+  swagger-client-gen:
+    image: swaggerapi/swagger-codegen-cli-v3
+    ulimits:
+      nofile: 122880
+    command: >
+      generate
+      -i https://raw.githubusercontent.com/gdg-garage/space-tycoon/master/api/swagger.yaml
+      -l python
+      -o /space_tycoon_generated_client
+      -D packageName=space_tycoon_client
+      -v
+    volumes:
+      - "./space_tycoon_generated_client:/space_tycoon_generated_client"
