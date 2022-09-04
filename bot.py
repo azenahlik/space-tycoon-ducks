@@ -106,13 +106,13 @@ class Game:
             print("No MS!")
 
         # Attack Commands
-        # attack_commands = get_fighting_commands(self.data, self.player_id)
-        # commands.update(attack_commands)
+        attack_commands = get_fighting_commands(self.data, self.player_id)
+        commands.update(attack_commands)
 
 
         # Trade Commands
-        trade_commands = getTrandingOptions(self.data)
-        commands.update(trade_commands)
+        # trade_commands = getTrandingOptions(self.data)
+        # commands.update(trade_commands)
 
         print({ship_id: ship for ship_id, ship in
                                       self.data.ships.items() if ship.player != self.player_id and ship.ship_class in [1,4,5]})

@@ -1,5 +1,6 @@
 from math import sqrt
 from logic.utils.ships import HAULER, SHIPPER
+from space_tycoon_client.models.data import Data
 
 
 def getResourceWithLowestPrice(resources):
@@ -68,20 +69,20 @@ def findSellOption(ship, data):
 
 
 
-def getTrandingOptions(data):
+def getTrandingOptions(data: Data):
 
     commands = {}
-
+    print(data.ships)
     for shipId, ship in data.ships:
         if ship.shipClass in [HAULER, SHIPPER] and 'command' not in ship:
 
             if ship.resources.amount > 0:
                 targetPlanet = findSellOption(ship, data)
                 commands[shipId] = {
-                    amount: -10,
-                    resource: resourceToBuy,
-                    target: targetPlanet[0],
-                    type: 'trade'
+                    "amount": -10,
+                    "resource": resourceToBuy,
+                    "target": targetPlanet[0],
+                    "type": 'trade'
                 }
             else:
                 targetPlanet = findTradingOption(ship, data)
@@ -89,10 +90,10 @@ def getTrandingOptions(data):
                 resourceToBuy = getResourceWithLowestPrice(targetPlanet.resources)
 
                 commands[shipId] = {
-                    amount: 10,
-                    resource: resourceToBuy,
-                    target: targetPlanet[0],
-                    type: 'trade'
+                    "amount": 10,
+                    "resource": resourceToBuy,
+                    "target": targetPlanet[0],
+                    "type": 'trade'
                 }
 
     return commands
