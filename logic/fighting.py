@@ -4,6 +4,8 @@ from space_tycoon_client.models.attack_command import AttackCommand
 from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 
+from utils.general import countDistanceShips
+
 
 def get_fighting_commands(data: Data, player_id: str) -> dict:
     commands = {}

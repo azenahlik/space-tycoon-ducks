@@ -40,6 +40,7 @@ class Game:
         self.data: Data = self.client.data_get()
         self.season = self.data.current_tick.season
         self.tick = self.data.current_tick.tick
+        self.target: str = ""
         # this part is custom logic, feel free to edit / delete
         if self.player_id not in self.data.players:
             raise Exception("Logged as non-existent player")
@@ -105,8 +106,8 @@ class Game:
             print("No MS!")
 
         # Attack Commands
-        attack_commands = get_fighting_commands(self.data, self.player_id)
-        commands.update(attack_commands)
+        # attack_commands = get_fighting_commands(self.data, self.player_id)
+        # commands.update(attack_commands)
 
 
         # Trade Commands

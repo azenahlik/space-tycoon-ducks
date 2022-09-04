@@ -1,5 +1,4 @@
 from math import sqrt
-import resource
 from logic.utils.ships import HAULER, SHIPPER
 
 
