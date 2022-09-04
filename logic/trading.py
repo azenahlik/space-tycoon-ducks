@@ -1,7 +1,6 @@
-from asyncio.windows_events import NULL
 from math import sqrt
 import resource
-from logic.utils.ships import MOTHERSHIP, HAULER, SHIPPER
+from logic.utils.ships import HAULER, SHIPPER
 
 
 def getResourceWithLowestPrice(resources):
@@ -62,41 +61,44 @@ def findTradingOption(ship, data):
     #         pass
 
 def findSellOption(ship, data):
-    planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if isPlanetBuyingResource(planet)}
+    resourceIdToSell = ship.resources.keys()[0]
+    planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if isPlanetBuyingResource(planet, resourceIdToSell)}
+    sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: x[1].resources[resourceIdToSell].sellPrice, reverse=True)
+    return sortedPlanets[0]
 
 
 
 
 def getTrandingOptions(data):
 
-    commands = []
+    commands = {}
 
     for shipId, ship in data.ships:
         if ship.shipClass in [HAULER, SHIPPER] and 'command' not in ship:
 
             if ship.resources.amount > 0:
                 targetPlanet = findSellOption(ship, data)
-                commands.append({
+                commands[shipId] = {
                     amount: -10,
                     resource: resourceToBuy,
                     target: targetPlanet[0],
                     type: 'trade'
-                })
+                }
             else:
                 targetPlanet = findTradingOption(ship, data)
                 
                 resourceToBuy = getResourceWithLowestPrice(targetPlanet.resources)
 
-                commands.append({
+                commands[shipId] = {
                     amount: 10,
                     resource: resourceToBuy,
                     target: targetPlanet[0],
                     type: 'trade'
-                })
+                }
 
     return commands
     
 
 
-if __name__ == "__main__":
-    print(MOTHERSHIP)
+# if __name__ == "__main__":
+#     print(MOTHERSHIP)

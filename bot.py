@@ -21,6 +21,7 @@ from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.static_data import StaticData
 from space_tycoon_client.rest import ApiException
 from logic.fighting import get_fighting_commands
+from logic.trading import getTrandingOptions
 
 CONFIG_FILE = "config.yml"
 
@@ -106,6 +107,11 @@ class Game:
         # Attack Commands
         attack_commands = get_fighting_commands(self.data, self.player_id)
         commands.update(attack_commands)
+
+
+        # Trade Commands
+        trade_commands = getTrandingOptions(self.data)
+        commands.update(trade_commands)
 
         print({ship_id: ship for ship_id, ship in
                                       self.data.ships.items() if ship.player != self.player_id and ship.ship_class in [1,4,5]})
