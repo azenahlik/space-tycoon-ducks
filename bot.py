@@ -4,7 +4,6 @@ from collections import Counter
 from pprint import pprint
 from typing import Dict
 from typing import Optional
-
 import yaml
 from space_tycoon_client import ApiClient
 from space_tycoon_client import Configuration
@@ -21,6 +20,7 @@ from space_tycoon_client.models.player_id import PlayerId
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.static_data import StaticData
 from space_tycoon_client.rest import ApiException
+from logic.fighting import get_fighting_commands
 
 CONFIG_FILE = "config.yml"
 
@@ -78,9 +78,6 @@ class Game:
         self.recreate_me()
         my_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                 self.data.ships.items() if ship.player == self.player_id}
-        enemy_shippers: Dict[Ship] = {ship_id: ship for ship_id, ship in
-                                self.data.ships.items() if ship.player != self.player_id and ship.ship_class == 3}
-        mothership_id: str = [ship_id for ship_id, ship in my_ships.items() if ship.ship_class == 1][0]
 
         ship_type_cnt = Counter(
             (self.static_data.ship_classes[ship.ship_class].name for ship in my_ships.values()))
@@ -90,12 +87,28 @@ class Game:
 
         commands = {}
         for ship_id, ship in my_ships.items():
-            if ship.command is not None:
-                continue
-            random_planet_id = random.choice(list(self.data.planets.keys()))
-            print(f"sending {ship_id} to {self.data.planets[random_planet_id].name}({random_planet_id})")
-            commands[ship_id] = MoveCommand(type="move", destination=Destination(target=random_planet_id))
-        commands[mothership_id] = ConstructCommand(4)
+            pass
+            # if ship.command is not None:
+            #     continue
+            # random_planet_id = random.choice(list(self.data.planets.keys()))
+            # print(f"sending {ship_id} to {self.data.planets[random_planet_id].name}({random_planet_id})")
+            # commands[ship_id] = MoveCommand(type="move", destination=Destination(target=random_planet_id))
+
+        # Mothership Init
+        ms = [ship_id for ship_id, ship in my_ships.items() if ship.ship_class == "1"]
+        if ms:
+            print(f"Ms id: {ms[0]}")
+            mothership_id: str = ms[0]
+            commands[mothership_id] = ConstructCommand("4")
+        else:
+            print("No MS!")
+
+        # Attack Commands
+        attack_commands = get_fighting_commands(self.data, self.player_id)
+        commands.update(attack_commands)
+
+        print({ship_id: ship for ship_id, ship in
+                                      self.data.ships.items() if ship.player != self.player_id and ship.ship_class in [1,4,5]})
 
         pprint(commands) if commands else None
         try:
