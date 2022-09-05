@@ -4,6 +4,7 @@ from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from utils.general import countDistanceShips
 from typing import Dict
+from random import randint
 
 def getResourceWithLowestPrice(resources):
     lowestPrice = 99999999999
@@ -45,6 +46,7 @@ def canBeTradeCommandFullfiled(ship, data):
     
 
     if command_type == 'buy':
+        print('BUY CHECK', planet_resource.amount < target_amount, planet_resource.buy_price == None, ship.position[0] == ship.prev_position[0] and ship.position[1] == ship.prev_position[1])
         if planet_resource.amount < target_amount:
             return False
         elif planet_resource.buy_price == None:
@@ -86,7 +88,7 @@ def countDistance(ship, planet):
 
 
 
-def findTradingOption(ship, data, planetsToExclude, resource_ranges):
+def findTradingOption(ship, data, planetsToExclude, resources_to_exclude):
     # OLD
     # planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if key not in planetsToExclude and hasPlanetResourcesToSell(planet)}
 
@@ -97,7 +99,12 @@ def findTradingOption(ship, data, planetsToExclude, resource_ranges):
 
     sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
 
-    return sortedPlanets[0]
+    target_planet = sortedPlanets[0]
+
+    return {
+        "planet_id": target_planet[0],
+        "resource_id": getResourceWithLowestPrice(target_planet[1].resources)
+    }
 
 
 def findSellOption(ship, data):
@@ -106,6 +113,11 @@ def findSellOption(ship, data):
     sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: x[1].resources[resourceIdToSell].sell_price, reverse=True)
     return sortedPlanets[0]
 
+def find_nearest_sell_option(ship, data):
+    resourceIdToSell = list(ship.resources.keys())[0]
+    planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if isPlanetBuyingResource(planet, resourceIdToSell)}
+    sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistanceShips(ship, x[1]))
+    return sortedPlanets[0]
 
 def orderRanges(ranges):
     return sorted(ranges.items(), key=lambda x: x[1]['diff'], reverse=True)
@@ -159,6 +171,8 @@ def get_trading_commands(data: Data, player_id):
         ship_id: ship for ship_id, ship in data.ships.items() if ship.player == player_id and ship.ship_class in [HAULER, SHIPPER]
     }
 
+    print('TRADERS', my_traders)
+
     traders_without_command = {
         ship_id: ship for ship_id, ship in my_traders.items() if not ship.command or not canBeTradeCommandFullfiled(ship, data)
     }
@@ -177,7 +191,8 @@ def get_trading_commands(data: Data, player_id):
     traders_without_cargo_keys = list(traders_without_cargo.keys())
 
     commands = {}
-    # planetsToExclude = []
+    planetsToExclude = []
+    resources_to_exclude = []
     traders_with_new_command = []
 
 
@@ -187,27 +202,38 @@ def get_trading_commands(data: Data, player_id):
     # buy_command_index = 0
 
     # buy commands
-    for index in range(len(traders_without_cargo_keys)):
-        # print('BUY COMMAND', index)
-        # Resoure buying options
-        resources_ranges = getResourcesRanges(data.planets, data.ships[traders_without_cargo_keys[index]].position)
-        sorted_ranges = orderRanges(resources_ranges)
+    # for index in range(len(traders_without_cargo_keys)):
+    #     # print('BUY COMMAND', index)
+    #     # Resoure buying options
+    #     resources_ranges = getResourcesRanges(data.planets, data.ships[traders_without_cargo_keys[index]].position)
+    #     sorted_ranges = orderRanges(resources_ranges)
 
-        planet_trade = sorted_ranges[index]
-        # print('FROM', planet_trade)
-        # planet_trade[1]
-        planet = data.planets[planet_trade[1]['from']]
+    #     # planet_trade = sorted_ranges[index]
+    #     print('FROM', planet_trade)
+    #     # planet_trade[1]
+    #     planet = data.planets[planet_trade[1]['from']]
 
-        the_chosen_one_id = select_nearest_trader({
-            ship_id: ship for ship_id, ship in traders_without_cargo.items() if ship_id not in traders_with_new_command
-        }, planet)
+    #     the_chosen_one_id = select_nearest_trader({
+    #         ship_id: ship for ship_id, ship in traders_without_cargo.items() if ship_id not in traders_with_new_command
+    #     }, planet)
 
-        traders_with_new_command.append(the_chosen_one_id)
+    #     traders_with_new_command.append(the_chosen_one_id)
 
-        commands[the_chosen_one_id] = {
+    #     commands[the_chosen_one_id] = {
+    #         "amount": 10,
+    #         "resource": planet_trade[1]['resource'],
+    #         "target": planet_trade[1]['from'],
+    #         "type": 'trade'
+    #     }
+
+    for shipId, ship in traders_without_cargo.items():
+        trade_option = findTradingOption(ship, data, planetsToExclude, resources_to_exclude)
+
+        planetsToExclude.append(trade_option['planet_id'])
+        commands[shipId] = {
             "amount": 10,
-            "resource": planet_trade[1]['resource'],
-            "target": planet_trade[1]['from'],
+            "resource": trade_option['resource_id'],
+            "target": trade_option['planet_id'],
             "type": 'trade'
         }
 
@@ -217,8 +243,13 @@ def get_trading_commands(data: Data, player_id):
         resourceIdToSell = list(ship.resources.keys())[0]
         # resources_ranges = getResourcesRanges(data.planets, ship.position)
         # print('RESOURCE RANGES', resources_ranges[resourceIdToSell])
-        target_planet = findSellOption(ship, data)
-        # targetPlanet = resources_ranges[resourceIdToSell]['to']
+
+        # Best sell option
+        # target_planet = findSellOption(ship, data)
+
+        # nearet sell option
+        target_planet = find_nearest_sell_option(ship, data)
+
         # print('SELLING TO', target_planet)
         commands[shipId] = {
             "amount": -10,
