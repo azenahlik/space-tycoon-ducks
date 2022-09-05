@@ -68,10 +68,30 @@ def findSellOption(ship, data):
     return sortedPlanets[0]
 
 
+def getResourcesRanges(data: Data):
+    planets = data.planets
+    resources = ["1","10","11","12","13","14","15","16","17","18","19","2","20","21","22","23","3","4","5","6","7","8","9"]
+    ranges = {}
+    for i in resources:
+        ranges[i] = {
+            'sell': 0,
+            'buy': 99999999,
+            'diff': 0,
+        }
 
+    for i in self.data.planets.keys():
+        for j in planets[i].resources:
+            if (planets[i].resources[j].buy_price != None and ranges[j]['buy'] > planets[i].resources[j].buy_price):
+                ranges[j]['buy'] = planets[i].resources[j].buy_price
+            if (planets[i].resources[j].sell_price != None and ranges[j]['sell'] < planets[i].resources[j].sell_price):
+                ranges[j]['sell'] = planets[i].resources[j].sell_price
+    for i in ranges:
+        ranges[i]['diff'] = ranges[i]['sell'] - ranges[i]['buy']
+
+    return ranges
 
 def getTrandingOptions(data: Data):
-
+    
     commands = {}
 
     for shipId, ship in data.ships.items():
