@@ -21,7 +21,7 @@ from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.static_data import StaticData
 from space_tycoon_client.rest import ApiException
 from logic.fighting import get_fighter_fighting_commands, get_ms_fighting_commands, get_repair_commands
-from logic.construction import get_construction_commands
+from logic.construction import get_fighter_construction_commands
 from logic.trading import getTrandingOptions
 import logging.config
 
@@ -107,31 +107,23 @@ class Game:
             # print(f"sending {ship_id} to {self.data.planets[random_planet_id].name}({random_planet_id})")
             # commands[ship_id] = MoveCommand(type="move", destination=Destination(target=random_planet_id))
 
-        # Mothership Init
-        ms = [ship_id for ship_id, ship in my_ships.items() if ship.ship_class == "1"]
-        if ms:
-            print(f"Ms id: {ms[0]}")
-            mothership_id: str = ms[0]
-            commands[mothership_id] = ConstructCommand("4")
-        else:
-            print("No MS!")
-
         # Attack Commands
         ms_attack_commands = get_ms_fighting_commands(self.data, self.player_id)
         commands.update(ms_attack_commands)
-        fighter_attack_commands = get_fighter_fighting_commands(self.data, self.player_id)
+        fighter_attack_commands = get_fighter_fighting_commands(self.data, self.player_id, 5)
         commands.update(fighter_attack_commands)
         fixing_commands = get_repair_commands(self.data, self.player_id)
         commands.update(fixing_commands)
 
         # Construction Commands
-        construction_commands = get_construction_commands(self.data, self.player_id)
+        construction_commands = get_fighter_construction_commands(self.data, self.player_id, 3, 1500000)
         commands.update(construction_commands)
 
         # # Trade Commands
         trade_commands = getTrandingOptions(self.data, self.player_id)
         commands.update(trade_commands)
 
+        logger.info(commands)
         pprint(commands) if commands else None
         try:
             self.client.commands_post(commands)

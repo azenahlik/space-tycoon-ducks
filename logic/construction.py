@@ -11,7 +11,7 @@ from space_tycoon_client.models.destination import Destination
 from utils.general import countDistanceShips
 
 
-def get_construction_commands(data: Data, player_id: str) -> dict:
+def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: int, min_money: int) -> dict:
     commands = {}
 
     my_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
@@ -25,7 +25,7 @@ def get_construction_commands(data: Data, player_id: str) -> dict:
     player_data = [data.players[x] for x in data.players if x == player_id][0]
 
     if ms:
-        if len(my_fighters) < 3 and player_data.net_worth.money >= 1500000:
+        if len(my_fighters) < min_fighters and player_data.net_worth.money >= min_money:
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand("4")
         else:
