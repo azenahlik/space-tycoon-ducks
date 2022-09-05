@@ -85,7 +85,7 @@ class Game:
                     raise e
             except Exception as e:
                 print(f"!!! EXCEPTION !!! Game logic error {e}")
-                traceback.print_exception(e)
+                traceback.print_exc()
 
     def game_logic(self):
         # todo throw all this away

@@ -1,6 +1,7 @@
 from math import sqrt
 from logic.utils.ships import HAULER, SHIPPER
 from space_tycoon_client.models.data import Data
+from space_tycoon_client.models.ship import Ship
 from utils.general import countDistanceShips
 
 
@@ -115,40 +116,45 @@ def getResourcesRanges(data: Data):
     return ranges
 
 def getTrandingOptions(data: Data, player_id):
+    my_traders: Dict[Ship] = {
+        ship_id: ship for ship_id, ship in data.ships.items() if ship.player == player_id and ship.ship_class in [HAULER, SHIPPER]
+    }
+
+    print(my_traders)
     
     commands = {}
+    planetsToExclude = []
 
-    for shipId, ship in data.ships.items():
-        if ship.player != player_id:
-            continue
-        if ship.ship_class in [str(HAULER), str(SHIPPER)]:
-            planetsToExclude = []
-            if ship.command:
-                if canBeTradeCommandFullfiled(ship, data):
-                    break
-                else:
-                    planetsToExclude.append(ship.command.target)
-
-            if hasResourceWithAmount(ship):
-                targetPlanet = findSellOption(ship, data)
-                resourceIdToSell = list(ship.resources.keys())[0]
-                commands[shipId] = {
-                    "amount": -10,
-                    "resource": resourceIdToSell,
-                    "target": targetPlanet[0],
-                    "type": 'trade'
-                }
+    for shipId, ship in my_traders.items():
+        if ship.command:
+            if canBeTradeCommandFullfiled(ship, data):
+                break
             else:
-                targetPlanet = findTradingOption(ship, data, planetsToExclude)
-                
-                resourceToBuy = getResourceWithLowestPrice(targetPlanet[1].resources)
+                planetsToExclude.append(ship.command.target)
 
-                commands[shipId] = {
-                    "amount": 10,
-                    "resource": resourceToBuy,
-                    "target": targetPlanet[0],
-                    "type": 'trade'
-                }
+        if hasResourceWithAmount(ship):
+            ## Selling
+            targetPlanet = findSellOption(ship, data)
+            resourceIdToSell = list(ship.resources.keys())[0]
+            commands[shipId] = {
+                "amount": -10,
+                "resource": resourceIdToSell,
+                "target": targetPlanet[0],
+                "type": 'trade'
+            }
+        else:
+            # Buying
+            targetPlanet = findTradingOption(ship, data, planetsToExclude)
+            planetsToExclude.append(targetPlanet[0])
+            
+            resourceToBuy = getResourceWithLowestPrice(targetPlanet[1].resources)
+
+            commands[shipId] = {
+                "amount": 10,
+                "resource": resourceToBuy,
+                "target": targetPlanet[0],
+                "type": 'trade'
+            }
 
     return commands
     
