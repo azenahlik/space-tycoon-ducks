@@ -28,18 +28,11 @@ def get_fighting_commands(data: Data, player_id: str) -> dict:
         chosen_enemy_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                           data.ships.items() if
                                           ship.player != player_id}
-    if chosen_enemy_ships == {}:
-        # Nothing to do now
-        if ms:
-            for attack_ship in my_attack_ships_without_ms:
-                commands[attack_ship] = MoveCommand(Destination(target=ms[0]))
-        else:
-            print("No MS to use")
     distances = [(x, countDistanceShips(list(my_attack_ships.values())[0], chosen_enemy_ships[x])) for x in chosen_enemy_ships]
     distances_by_shortest = sorted(distances, key=lambda d: d[1])
     if len(chosen_enemy_ships):
         for attack_ship in my_attack_ships:
-            commands[attack_ship] = AttackCommand(chosen_enemy_ships[distances_by_shortest[0][0]])
+            commands[attack_ship] = AttackCommand(distances_by_shortest[0][0])
             print(f'Fighter {attack_ship} attacking enemy fighter ID {list(chosen_enemy_ships.keys())[0]}')
 
     return commands
