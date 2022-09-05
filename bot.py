@@ -21,6 +21,7 @@ from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.static_data import StaticData
 from space_tycoon_client.rest import ApiException
 from logic.fighting import get_fighting_commands
+from logic.construction import get_construction_commands
 from logic.trading import getTrandingOptions
 
 CONFIG_FILE = "config.yml"
@@ -40,7 +41,7 @@ class Game:
         self.data: Data = self.client.data_get()
         self.season = self.data.current_tick.season
         self.tick = self.data.current_tick.tick
-        self.target: str = ""
+        self.init: str = ""
         # this part is custom logic, feel free to edit / delete
         if self.player_id not in self.data.players:
             raise Exception("Logged as non-existent player")
@@ -109,13 +110,13 @@ class Game:
         attack_commands = get_fighting_commands(self.data, self.player_id)
         commands.update(attack_commands)
 
+        # Construction Commands
+        construction_commands = get_construction_commands(self.data, self.player_id)
+        commands.update(construction_commands)
 
-        # Trade Commands
-        trade_commands = getTrandingOptions(self.data)
-        commands.update(trade_commands)
-
-        print({ship_id: ship for ship_id, ship in
-                                      self.data.ships.items() if ship.player != self.player_id and ship.ship_class in [1,4,5]})
+        # # Trade Commands
+        # trade_commands = getTrandingOptions(self.data)
+        # commands.update(trade_commands)
 
         pprint(commands) if commands else None
         try:
