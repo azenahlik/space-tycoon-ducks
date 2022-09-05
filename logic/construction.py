@@ -21,7 +21,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
                             data.ships.items() if ship.player == player_id}
 
     my_fighters: Dict[Ship] = {ship_id: ship for ship_id, ship in
-                            data.ships.items() if ship.player == player_id and ship.ship_class == "4"}
+                            data.ships.items() if ship.player == player_id and ship.ship_class == "5"}
 
     # Mothership Init
     ms = [ship_id for ship_id, ship in my_ships.items() if ship.ship_class == "1"]
@@ -30,7 +30,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
     if ms:
         if len(my_fighters) < min_fighters and player_data.net_worth.money >= min_money:
             mothership_id: str = ms[0]
-            commands[mothership_id] = ConstructCommand("4")
+            commands[mothership_id] = ConstructCommand("5")
         else:
             logger.info('No need to build!')
             return commands

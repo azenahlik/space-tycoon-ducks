@@ -94,7 +94,7 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
         return commands
 
     for attack_ship in my_attack_ships:
-        if my_attack_ships[attack_ship].life < 100:
+        if my_attack_ships[attack_ship].life < 150:
             try:
                 logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
             except:
