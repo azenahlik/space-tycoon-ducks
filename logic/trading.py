@@ -113,11 +113,23 @@ def findSellOption(ship, data):
     sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: x[1].resources[resourceIdToSell].sell_price, reverse=True)
     return sortedPlanets[0]
 
-def find_nearest_sell_option(ship, data):
+def find_nearest_sell_option(ship, data, radius_for_best_sell):
     resourceIdToSell = list(ship.resources.keys())[0]
     planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if isPlanetBuyingResource(planet, resourceIdToSell)}
-    sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistanceShips(ship, x[1]))
-    return sortedPlanets[0]
+    sorted_planets_by_distance = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistanceShips(ship, x[1]))
+
+    biggest_sell_option = sorted_planets_by_distance[0][1].resources[resourceIdToSell].sell_price
+    return_planet = sorted_planets_by_distance[0]
+
+    for planet_tuple in sorted_planets_by_distance:
+        current_sell_price = planet_tuple[1].resources[resourceIdToSell].sell_price
+        if current_sell_price > biggest_sell_option and countDistanceShips(ship, planet_tuple[1]) <= radius_for_best_sell:
+            biggest_sell_option = current_sell_price
+            return_planet = planet_tuple
+
+    # print('TEST IN RANGE', biggest_sell_option, return_planet)
+    
+    return return_planet
 
 def orderRanges(ranges):
     return sorted(ranges.items(), key=lambda x: x[1]['diff'], reverse=True)
@@ -248,7 +260,7 @@ def get_trading_commands(data: Data, player_id):
         # target_planet = findSellOption(ship, data)
 
         # nearet sell option
-        target_planet = find_nearest_sell_option(ship, data)
+        target_planet = find_nearest_sell_option(ship, data, 200)
 
         # print('SELLING TO', target_planet)
         commands[shipId] = {
