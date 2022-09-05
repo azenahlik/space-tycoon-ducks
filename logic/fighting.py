@@ -67,7 +67,7 @@ def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: in
                 logger.info(f'Fighter {attack_ship} is staying with MS')
         else:
             for attack_ship in my_attack_ships_without_ms:
-                commands[attack_ship] = AttackCommand(list(closest_filtered_enemy_ships[0].values())[0])
+                commands[attack_ship] = AttackCommand(list(closest_filtered_enemy_ships[0].keys())[0])
                 logger.info(f'Fighter {attack_ship} attacking enemy fighter ID {list(chosen_enemy_ships.keys())[0]}')
 
     return commands
