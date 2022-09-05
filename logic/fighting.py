@@ -6,15 +6,16 @@ from space_tycoon_client.models.repair_command import RepairCommand
 from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.destination import Destination
-# from space_tycoon_client.models.target import Target
+# from space_tycoon_client.models.target import
 import logging
 
-from utils.general import countDistanceShips
+from utils.general import SharedComms
 from utils.ship_helpers import get_my_attack_ships, get_enemy_attack_ships,\
     get_mothership, get_distance_ships_ms_extra, get_enemy_ships, get_closest_ships
 
 
 logger = logging.getLogger(__name__)
+
 
 
 def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
@@ -31,6 +32,7 @@ def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
     if chosen_enemy_ships == {}:
         chosen_enemy_ships: Dict[Ship] = get_enemy_ships(data, player_id)
         no_enemy_attack_ships = True
+        SharedComms().galaxy_at_peace = True
     closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, chosen_enemy_ships)
     player_data = [data.players[x] for x in data.players if x == player_id][0]
 
