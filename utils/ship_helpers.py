@@ -23,6 +23,11 @@ def get_my_attack_ships(data: Data, player_id: str, include_ms: bool = True) -> 
             ship.player == player_id and ship.ship_class in ["1" if include_ms else "X", "4", "5"]}
 
 
+def get_my_ships(data: Data, player_id: str, include_ms: bool = True) -> Dict:
+    return {ship_id: ship for ship_id, ship in data.ships.items() if
+            ship.player == player_id}
+
+
 def get_enemy_attack_ships(data: Data, player_id: str, include_ms: bool = True) -> Dict:
     return {ship_id: ship for ship_id, ship in data.ships.items() if
             ship.player != player_id and ship.ship_class in ["1" if include_ms else "X", "4", "5"]}
