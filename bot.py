@@ -22,7 +22,7 @@ from space_tycoon_client.models.static_data import StaticData
 from space_tycoon_client.rest import ApiException
 from logic.fighting import get_fighter_fighting_commands, get_ms_fighting_commands, get_repair_commands
 from logic.construction import get_fighter_construction_commands
-from logic.trading import getTrandingOptions
+from logic.trading import get_trading_commands
 import logging.config
 
 CONFIG_FILE = "config.yml"
@@ -120,7 +120,7 @@ class Game:
         commands.update(construction_commands)
 
         # # Trade Commands
-        trade_commands = getTrandingOptions(self.data, self.player_id)
+        trade_commands = get_trading_commands(self.data, self.player_id)
         commands.update(trade_commands)
 
         logger.info(commands)
