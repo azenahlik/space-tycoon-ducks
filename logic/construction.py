@@ -7,8 +7,11 @@ from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.destination import Destination
 # from space_tycoon_client.models.target import Target
-
 from utils.general import countDistanceShips
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: int, min_money: int) -> dict:
@@ -29,10 +32,10 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand("4")
         else:
-            print('No need to build!')
+            logger.info('No need to build!')
             return commands
     else:
-        print("No MS to build fighters!")
+        logger.info("No MS to build fighters!")
         return commands
 
     return commands

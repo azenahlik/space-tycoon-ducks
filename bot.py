@@ -20,9 +20,6 @@ from space_tycoon_client.models.player_id import PlayerId
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.static_data import StaticData
 from space_tycoon_client.rest import ApiException
-from logic.fighting import get_fighter_fighting_commands, get_ms_fighting_commands, get_repair_commands
-from logic.construction import get_fighter_construction_commands
-from logic.trading import get_trading_commands
 import logging.config
 
 CONFIG_FILE = "config.yml"
@@ -35,6 +32,11 @@ if config["logging_config"]:
     logger = logging.getLogger(__name__)
 else:
     raise FileNotFoundError("Logging config not found!")
+
+
+from logic.fighting import get_fighter_fighting_commands, get_ms_fighting_commands, get_repair_commands
+from logic.construction import get_fighter_construction_commands
+from logic.trading import get_trading_commands
 
 
 class ConfigException(Exception):
@@ -56,16 +58,16 @@ class Game:
         if self.player_id not in self.data.players:
             raise Exception("Logged as non-existent player")
         self.recreate_me()
-        print(f"playing as [{self.me.name}] id: {self.player_id}")
+        logger.info(f"playing as [{self.me.name}] id: {self.player_id}")
 
     def recreate_me(self):
         self.me: Player = self.data.players[self.player_id]
 
     def game_loop(self):
         while True:
-            print("-" * 30)
+            logger.info("-" * 30)
             try:
-                print(f"tick {self.tick} season {self.season}")
+                logger.info(f"tick {self.tick} season {self.season}")
                 self.data: Data = self.client.data_get()
                 if self.data.player_id is None:
                     raise Exception("I am not correctly logged in. Bailing out")
@@ -78,12 +80,12 @@ class Game:
                 self.season = current_tick.season
             except ApiException as e:
                 if e.status == 403:
-                    print(f"New season started or login expired: {e}")
+                    logger.info(f"New season started or login expired: {e}")
                     break
                 else:
                     raise e
             except Exception as e:
-                print(f"!!! EXCEPTION !!! Game logic error {e}")
+                logger.info(f"!!! EXCEPTION !!! Game logic error {e}")
                 traceback.print_exc()
 
     def game_logic(self):
@@ -96,7 +98,7 @@ class Game:
             (self.static_data.ship_classes[ship.ship_class].name for ship in my_ships.values()))
         pretty_ship_type_cnt = ', '.join(
             f"{k}:{v}" for k, v in ship_type_cnt.most_common())
-        print(f"I have {len(my_ships)} ships ({pretty_ship_type_cnt})")
+        logger.info(f"I have {len(my_ships)} ships ({pretty_ship_type_cnt})")
 
         commands = {}
         for ship_id, ship in my_ships.items():
@@ -130,8 +132,8 @@ class Game:
             self.client.commands_post(commands)
         except ApiException as e:
             if e.status == 400:
-                print("some commands failed")
-                print(e.body)
+                logger.error("some commands failed")
+                logger.error(e.body)
 
     def login(self) -> str:
         if self.config["user"] == "?":
@@ -153,22 +155,22 @@ def main_loop(api_client, config):
         try:
             game = Game(game_api, config)
             game.game_loop()
-            print("season ended")
+            logger.info("season ended")
         except ConfigException as e:
-            print(f"User / password was not configured in the config file [{CONFIG_FILE}]")
+            logger.error(f"User / password was not configured in the config file [{CONFIG_FILE}]")
             return
         except Exception as e:
-            print(f"Unexpected error {e}")
+            logger.error(f"Unexpected error {e}")
 
 
 def main():
     logger.info('Staring')
     config = yaml.safe_load(open(CONFIG_FILE))
-    print(f"Loaded config file {CONFIG_FILE}")
-    print(f"Loaded config values {config}")
+    logger.info(f"Loaded config file {CONFIG_FILE}")
+    logger.info(f"Loaded config values {config}")
     configuration = Configuration()
     if config["host"] == "?":
-        print(f"Host was not configured in the config file [{CONFIG_FILE}]")
+        logger.error(f"Host was not configured in the config file [{CONFIG_FILE}]")
         return
 
     configuration.host = config["host"]

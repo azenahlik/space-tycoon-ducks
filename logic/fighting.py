@@ -73,11 +73,11 @@ def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: in
         if ms and min([x[1] for x in distances_by_shortest]) > aggro_distance and not no_enemy_attack_ships:
             for attack_ship in my_attack_ships_without_ms:
                 commands[attack_ship] = MoveCommand(destination=Destination(target=ms[0]))
-                print(f'Fighter {attack_ship} is staying with MS')
+                logger.info(f'Fighter {attack_ship} is staying with MS')
         else:
             for attack_ship in my_attack_ships_without_ms:
                 commands[attack_ship] = AttackCommand(distances_by_shortest[0][0])
-                print(f'Fighter {attack_ship} attacking enemy fighter ID {list(chosen_enemy_ships.keys())[0]}')
+                logger.info(f'Fighter {attack_ship} attacking enemy fighter ID {list(chosen_enemy_ships.keys())[0]}')
 
     return commands
 
@@ -89,14 +89,14 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
                                    data.ships.items() if ship.player == player_id and ship.ship_class in ["1","4","5"]}
 
     if len(my_attack_ships):
-        logger.info(f'{[(my_attack_ships[attack_ship].name, my_attack_ships[attack_ship].life) for attack_ship in my_attack_ships]}')
-        print(f'{[(my_attack_ships[attack_ship].name, my_attack_ships[attack_ship].life) for attack_ship in my_attack_ships]}')
+        logger.info(f'Ship health log: {[(my_attack_ships[attack_ship].name, my_attack_ships[attack_ship].life) for attack_ship in my_attack_ships]}')
+    else:
+        return commands
 
     for attack_ship in my_attack_ships:
         if my_attack_ships[attack_ship].life < 100:
             try:
                 logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
-                print(f"Healing attack ship {my_attack_ships[attack_ship].name}")
             except:
                 pass  # just before sleep and not taking chances
             commands[attack_ship] = RepairCommand()
