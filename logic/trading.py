@@ -84,8 +84,7 @@ def findSellOption(ship, data):
 
 
 def orderRanges(ranges):
-    out = sorted(ranges.items(), key=lambda x: x[1]['diff'], reverse=True)
-    return out
+    return sorted(ranges.items(), key=lambda x: x[1]['diff'], reverse=True)
 
 def getResourcesRanges(data: Data):
     planets = data.planets
@@ -118,9 +117,7 @@ def getResourcesRanges(data: Data):
     for i in ranges:
         ranges[i]['diff'] = ranges[i]['sell'] - ranges[i]['buy']
 
-    ordered = orderRanges(ranges)
-
-    return ordered
+    return ranges
 
 def getTrandingOptions(data: Data, player_id):
     my_traders: Dict[Ship] = {
