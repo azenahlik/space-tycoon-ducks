@@ -20,6 +20,8 @@ def get_fighting_commands(data: Data, player_id: str) -> dict:
 
     my_attack_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                    data.ships.items() if ship.player == player_id and ship.ship_class in ["1","4","5"]}
+    if not my_attack_ships:
+        return commands
     my_attack_ships_without_ms: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                    data.ships.items() if ship.player == player_id and ship.ship_class in ["4","5"]}
     ms = [ship_id for ship_id, ship in my_attack_ships.items() if ship.ship_class == "1"]
