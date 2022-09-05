@@ -182,7 +182,7 @@ def get_trading_commands(data: Data, player_id):
         commands[shipId] = {
             "amount": -10,
             "resource": resourceIdToSell,
-            "target": targetPlanet[0],
+            "target": targetPlanet,
             "type": 'trade'
         }
 

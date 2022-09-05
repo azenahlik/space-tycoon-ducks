@@ -121,6 +121,7 @@ class Game:
 
         # # Trade Commands
         trade_commands = get_trading_commands(self.data, self.player_id)
+        # print('TRADE COMMANDS', trade_commands)
         commands.update(trade_commands)
 
         logger.info(commands)
