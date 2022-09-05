@@ -3,3 +3,9 @@ host: "https://space-tycoon.garage-trip.cz"
 #host: "?"
 user: "ducks"
 password: "ducklings"
+
+# dev 
+# host: "46.101.112.32"
+# #host: "?"
+# user: "ducks"
+# password: "123"

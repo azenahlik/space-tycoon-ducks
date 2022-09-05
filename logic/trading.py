@@ -27,6 +27,8 @@ def canBeTradeCommandFullfiled(ship, data):
         return False
     elif planet_resource.amount < target_amount:
         return False
+    elif (ship.position[0] == ship.prev_position[0] and ship.position[1] == ship.prev_position[1]):
+        return False
     else:
         return True
 
@@ -54,8 +56,8 @@ def isPlanetInRadius(ship, planet, radius):
 def countDistance(ship, planet):
     return countDistanceShips(ship, planet)
 
-def findTradingOption(ship, data):
-    planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if hasPlanetResourcesToSell(planet)}
+def findTradingOption(ship, data, planetsToExclude):
+    planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if key not in planetsToExclude and hasPlanetResourcesToSell(planet)}
 
     sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
 
@@ -92,7 +94,7 @@ def getResourcesRanges(data: Data):
             'diff': 0,
         }
 
-    for i in self.data.planets.keys():
+    for i in data.planets.keys():
         for j in planets[i].resources:
             if (planets[i].resources[j].buy_price != None and ranges[j]['buy'] > planets[i].resources[j].buy_price):
                 ranges[j]['buy'] = planets[i].resources[j].buy_price
@@ -103,12 +105,20 @@ def getResourcesRanges(data: Data):
 
     return ranges
 
-def getTrandingOptions(data: Data):
+def getTrandingOptions(data: Data, player_id):
     
     commands = {}
 
     for shipId, ship in data.ships.items():
-        if ship.ship_class in [str(HAULER), str(SHIPPER)] and (not ship.command or canBeTradeCommandFullfiled(ship, data)):
+        if ship.player != player_id:
+            continue
+        if ship.ship_class in [str(HAULER), str(SHIPPER)]:
+            planetsToExclude = []
+            if ship.command:
+                if canBeTradeCommandFullfiled(ship, data):
+                    break
+                else:
+                    planetsToExclude.append(ship.command.target)
 
             if hasResourceWithAmount(ship):
                 targetPlanet = findSellOption(ship, data)
@@ -120,7 +130,7 @@ def getTrandingOptions(data: Data):
                     "type": 'trade'
                 }
             else:
-                targetPlanet = findTradingOption(ship, data)
+                targetPlanet = findTradingOption(ship, data, planetsToExclude)
                 
                 resourceToBuy = getResourceWithLowestPrice(targetPlanet[1].resources)
 
