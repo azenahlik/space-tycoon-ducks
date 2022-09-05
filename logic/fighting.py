@@ -46,7 +46,7 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
                                    data.ships.items() if ship.player == player_id and ship.ship_class in ["1","4","5"]}
 
     for attack_ship in my_attack_ships:
-        if my_attack_ships[attack_ship].life < 50:
+        if my_attack_ships[attack_ship].life <= 45:  # 1 tick for 3 fighters = 45 dmg
             commands[attack_ship] = RepairCommand()
 
     return commands
