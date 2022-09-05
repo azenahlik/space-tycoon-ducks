@@ -1,6 +1,7 @@
-#host: "localhost"
-host: "https://space-tycoon.garage-trip.cz"
+host: "localhost"
+#host: "https://space-tycoon.garage-trip.cz"
 #host: "?"
+<<<<<<< Updated upstream
 user: "ducks"
 password: "ducklings"
 
@@ -9,3 +10,8 @@ password: "ducklings"
 # #host: "?"
 # user: "ducks"
 # password: "123"
+=======
+user: "test"
+password: "test"
+logging_config: "log/logging.ini"
+>>>>>>> Stashed changes

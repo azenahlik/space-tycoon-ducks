@@ -7,8 +7,12 @@ from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.destination import Destination
 # from space_tycoon_client.models.target import Target
+import logging
 
 from utils.general import countDistanceShips
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_fighting_commands(data: Data, player_id: str) -> dict:
@@ -34,7 +38,7 @@ def get_fighting_commands(data: Data, player_id: str) -> dict:
     if len(chosen_enemy_ships):
         for attack_ship in my_attack_ships:
             commands[attack_ship] = AttackCommand(distances_by_shortest[0][0])
-            print(f'Fighter {attack_ship} attacking enemy fighter ID {list(chosen_enemy_ships.keys())[0]}')
+            logger.info(f'Fighter {attack_ship} attacking enemy fighter ID {list(chosen_enemy_ships.keys())[0]}')
 
     return commands
 
@@ -45,8 +49,17 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
     my_attack_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                    data.ships.items() if ship.player == player_id and ship.ship_class in ["1","4","5"]}
 
+    if len(my_attack_ships):
+        logger.info(f'{[(my_attack_ships[attack_ship].name, my_attack_ships[attack_ship].life) for attack_ship in my_attack_ships]}')
+        print(f'{[(my_attack_ships[attack_ship].name, my_attack_ships[attack_ship].life) for attack_ship in my_attack_ships]}')
+
     for attack_ship in my_attack_ships:
-        if my_attack_ships[attack_ship].life <= 45:  # 1 tick for 3 fighters = 45 dmg
+        if my_attack_ships[attack_ship].life <= 100:
+            try:
+                logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
+                print(f"Healing attack ship {my_attack_ships[attack_ship].name}")
+            except:
+                pass  # just before sleep and not taking chances
             commands[attack_ship] = RepairCommand()
 
     return commands

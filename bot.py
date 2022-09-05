@@ -24,8 +24,18 @@ from logic.fighting import get_fighting_commands
 from logic.fighting import get_repair_commands
 from logic.construction import get_construction_commands
 from logic.trading import getTrandingOptions
+import logging.config
 
 CONFIG_FILE = "config.yml"
+
+# Configure log
+config = yaml.safe_load(open(CONFIG_FILE))
+configuration = Configuration()
+if config["logging_config"]:
+    logging.config.fileConfig(config["logging_config"])
+    logger = logging.getLogger(__name__)
+else:
+    raise FileNotFoundError("Logging config not found!")
 
 
 class ConfigException(Exception):
@@ -158,6 +168,7 @@ def main_loop(api_client, config):
 
 
 def main():
+    logger.info('Staring')
     config = yaml.safe_load(open(CONFIG_FILE))
     print(f"Loaded config file {CONFIG_FILE}")
     print(f"Loaded config values {config}")
