@@ -16,6 +16,19 @@ def getResourceWithLowestPrice(resources):
 
     return resourceIdToBuy
 
+def canBeTradeCommandFullfiled(ship, data):
+    target_resource = ship.command.resource
+    target_amount = ship.command.amount
+    target_target = ship.command.target
+
+    planet_resource = data.planets[target_target].resources[target_resource]
+
+    if not planet_resource:
+        return False
+    elif planet_resource.amount < target_amount:
+        return False
+    else:
+        return True
 
 def hasPlanetResourcesToSell(planet):
     for id, resource in planet.resources.items():
@@ -104,7 +117,7 @@ def getTrandingOptions(data: Data):
     commands = {}
 
     for shipId, ship in data.ships.items():
-        if ship.ship_class in [str(HAULER), str(SHIPPER)] and not ship.command:
+        if ship.ship_class in [str(HAULER), str(SHIPPER)] and (not ship.command or canBeTradeCommandFullfiled(ship, data)):
 
             if hasResourceWithAmount(ship):
                 targetPlanet = findSellOption(ship, data)
