@@ -97,9 +97,10 @@ def orderRanges(ranges):
 def distanceSqr(A, B):
     x = (A[0] - B[0])
     y = (A[1] - B[1])
-    return x * x + y * y
+    return x * x + y * y + 1
 
 def getResourcesRanges(planets, position):
+    planets = planetsInrange(planets, position, 300)
     resources = ["1","10","11","12","13","14","15","16","17","18","19","2","20","21","22","23","3","4","5","6","7","8","9"]
     ranges = {}
 
@@ -115,10 +116,12 @@ def getResourcesRanges(planets, position):
         }
 
     # find ranges
+    print(planets)
     for i in planets.keys():
         for j in planets[i].resources:
             if (planets[i].resources[j].amount > 10):
                 d = distanceSqr(position, planets[i].position)
+                d = d * d
                 if (planets[i].resources[j].buy_price != None and ranges[j]['buy'] > planets[i].resources[j].buy_price / d):
                     ranges[j]['buy'] = planets[i].resources[j].buy_price
                     ranges[j]['from'] = i
@@ -131,6 +134,9 @@ def getResourcesRanges(planets, position):
         ranges[i]['diff'] = ranges[i]['sell'] - ranges[i]['buy']
 
     return ranges
+
+def planetsInrange(planets, position, maxDistance):
+    return {i: planets[i] for i in planets if distanceSqr(planets[i].position, position) < maxDistance * maxDistance}
 
 def get_trading_commands(data: Data, player_id):
     my_traders: Dict[Ship] = {
@@ -183,6 +189,7 @@ def get_trading_commands(data: Data, player_id):
     # sell commands
     for shipId, ship in traders_with_cargo.items():
         resourceIdToSell = list(ship.resources.keys())[0]
+        resources_ranges = getResourcesRanges(data.planets, ship.position)
         targetPlanet = resources_ranges[resourceIdToSell]['to']
         commands[shipId] = {
             "amount": -10,
