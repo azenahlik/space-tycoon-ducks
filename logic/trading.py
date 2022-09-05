@@ -94,8 +94,12 @@ def findSellOption(ship, data):
 def orderRanges(ranges):
     return sorted(ranges.items(), key=lambda x: x[1]['diff'], reverse=True)
 
-def getResourcesRanges(data: Data):
-    planets = data.planets
+def distanceSqr(A, B):
+    x = (A[0] - B[0])
+    y = (A[1] - B[1])
+    return x * x + y * y
+
+def getResourcesRanges(planets, position):
     resources = ["1","10","11","12","13","14","15","16","17","18","19","2","20","21","22","23","3","4","5","6","7","8","9"]
     ranges = {}
 
@@ -111,13 +115,14 @@ def getResourcesRanges(data: Data):
         }
 
     # find ranges
-    for i in data.planets.keys():
+    for i in planets.keys():
         for j in planets[i].resources:
             if (planets[i].resources[j].amount > 10):
-                if (planets[i].resources[j].buy_price != None and ranges[j]['buy'] > planets[i].resources[j].buy_price):
+                d = distanceSqr(position, planets[i].position)
+                if (planets[i].resources[j].buy_price != None and ranges[j]['buy'] > planets[i].resources[j].buy_price / d):
                     ranges[j]['buy'] = planets[i].resources[j].buy_price
                     ranges[j]['from'] = i
-                if (planets[i].resources[j].sell_price != None and ranges[j]['sell'] < planets[i].resources[j].sell_price):
+                if (planets[i].resources[j].sell_price != None and ranges[j]['sell'] < planets[i].resources[j].sell_price / d):
                     ranges[j]['sell'] = planets[i].resources[j].sell_price
                     ranges[j]['to'] = i
 
@@ -146,10 +151,6 @@ def get_trading_commands(data: Data, player_id):
 
     traders_without_cargo_keys = list(traders_without_cargo.keys())
 
-    # Resoure buying options
-    resources_ranges = getResourcesRanges(data)
-    sorted_ranges = orderRanges(resources_ranges)
-    
     commands = {}
     # planetsToExclude = []
     traders_with_new_command = []
@@ -158,6 +159,10 @@ def get_trading_commands(data: Data, player_id):
 
     # buy commands
     for index in range(len(traders_without_cargo_keys)):
+        # Resoure buying options
+        resources_ranges = getResourcesRanges(data.planets, data.ships[traders_without_cargo_keys[index]].position)
+        sorted_ranges = orderRanges(resources_ranges)
+
         planet_trade = sorted_ranges[index]
         # print('FROM', planet_trade)
         planet = data.planets[planet_trade[1]['from']]
