@@ -3,6 +3,7 @@ from logic.utils.ships import HAULER, SHIPPER
 from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from utils.general import countDistanceShips
+from typing import Dict
 
 def getResourceWithLowestPrice(resources):
     lowestPrice = 99999999999
@@ -32,17 +33,32 @@ def canBeTradeCommandFullfiled(ship, data):
     target_resource = ship.command.resource
     target_amount = ship.command.amount
     target_target = ship.command.target
+    command_type = 'buy'
+
+    if target_amount < 0:
+        command_type = 'sell'
 
     planet_resource = data.planets[target_target].resources[target_resource]
 
     if not planet_resource:
         return False
-    elif planet_resource.amount < target_amount:
-        return False
-    elif (ship.position[0] == ship.prev_position[0] and ship.position[1] == ship.prev_position[1]):
-        return False
+    
+
+    if command_type == 'buy':
+        if planet_resource.amount < target_amount:
+            return False
+        elif planet_resource.buy_price == None:
+            return False
+        elif (ship.position[0] == ship.prev_position[0] and ship.position[1] == ship.prev_position[1]):
+            return False
     else:
-        return True
+        if planet_resource.sell_price == None:
+            return False
+        elif (ship.position[0] == ship.prev_position[0] and ship.position[1] == ship.prev_position[1]):
+            return False
+
+    return True
+
 
 def hasPlanetResourcesToSell(planet):
     for id, resource in planet.resources.items():
@@ -148,11 +164,11 @@ def get_trading_commands(data: Data, player_id):
     }
 
     traders_without_cargo = {
-        ship_id: ship for ship_id, ship in my_traders.items() if not hasResourceWithAmount(ship)
+        ship_id: ship for ship_id, ship in traders_without_command.items() if not hasResourceWithAmount(ship)
     }
 
     traders_with_cargo = {
-        ship_id: ship for ship_id, ship in my_traders.items() if hasResourceWithAmount(ship)
+        ship_id: ship for ship_id, ship in traders_without_command.items() if hasResourceWithAmount(ship)
     }
 
     traders_without_cargo_keys = list(traders_without_cargo.keys())
