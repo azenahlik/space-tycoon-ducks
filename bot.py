@@ -115,8 +115,8 @@ class Game:
         commands.update(construction_commands)
 
         # # Trade Commands
-        # trade_commands = getTrandingOptions(self.data)
-        # commands.update(trade_commands)
+        trade_commands = getTrandingOptions(self.data)
+        commands.update(trade_commands)
 
         pprint(commands) if commands else None
         try:
