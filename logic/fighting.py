@@ -78,14 +78,28 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
 
     my_attack_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                    data.ships.items() if ship.player == player_id and ship.ship_class in ["1","4","5"]}
+    my_heavy_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
+                                   data.ships.items() if
+                                   ship.player == player_id and ship.ship_class in ["1", "5"]}
+    my_fighter_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
+                                   data.ships.items() if
+                                   ship.player == player_id and ship.ship_class in ["4"]}
 
     if len(my_attack_ships):
         logger.info(f'Ship health log: {[(my_attack_ships[attack_ship].name, my_attack_ships[attack_ship].life) for attack_ship in my_attack_ships]}')
     else:
         return commands
 
-    for attack_ship in my_attack_ships:
+    for attack_ship in my_heavy_ships:
         if my_attack_ships[attack_ship].life < 190:
+            try:
+                logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
+            except:
+                pass  # just before sleep and not taking chances
+            commands[attack_ship] = RepairCommand()
+
+    for attack_ship in my_fighter_ships:
+        if my_attack_ships[attack_ship].life < 100:
             try:
                 logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
             except:
