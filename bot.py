@@ -21,6 +21,7 @@ from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.static_data import StaticData
 from space_tycoon_client.rest import ApiException
 from logic.fighting import get_fighting_commands
+from logic.fighting import get_repair_commands
 from logic.construction import get_construction_commands
 from logic.trading import getTrandingOptions
 
@@ -109,6 +110,8 @@ class Game:
         # Attack Commands
         attack_commands = get_fighting_commands(self.data, self.player_id)
         commands.update(attack_commands)
+        fixing_commands = get_repair_commands(self.data, self.player_id)
+        commands.update(fixing_commands)
 
         # Construction Commands
         construction_commands = get_construction_commands(self.data, self.player_id)
