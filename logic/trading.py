@@ -4,7 +4,6 @@ from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from utils.general import countDistanceShips
 
-
 def getResourceWithLowestPrice(resources):
     lowestPrice = 99999999999
     resourceIdToBuy = -1
@@ -84,6 +83,10 @@ def findSellOption(ship, data):
     return sortedPlanets[0]
 
 
+def orderRanges(ranges):
+    out = sorted(ranges.items(), key=lambda x: x[1]['diff'], reverse=True)
+    return out
+
 def getResourcesRanges(data: Data):
     planets = data.planets
     resources = ["1","10","11","12","13","14","15","16","17","18","19","2","20","21","22","23","3","4","5","6","7","8","9"]
@@ -97,23 +100,27 @@ def getResourcesRanges(data: Data):
             'sell': 0,
             'buy': 99999999,
             'diff': 0,
+            'resource': i
         }
 
     # find ranges
     for i in data.planets.keys():
         for j in planets[i].resources:
-            if (planets[i].resources[j].buy_price != None and ranges[j]['buy'] > planets[i].resources[j].buy_price):
-                ranges[j]['buy'] = planets[i].resources[j].buy_price
-                ranges[j]['to'] = i
-            if (planets[i].resources[j].sell_price != None and ranges[j]['sell'] < planets[i].resources[j].sell_price):
-                ranges[j]['sell'] = planets[i].resources[j].sell_price
-                ranges[j]['from'] = i
-  
+            if (planets[i].resources[j].amount > 10):
+                if (planets[i].resources[j].buy_price != None and ranges[j]['buy'] > planets[i].resources[j].buy_price):
+                    ranges[j]['buy'] = planets[i].resources[j].buy_price
+                    ranges[j]['from'] = i
+                if (planets[i].resources[j].sell_price != None and ranges[j]['sell'] < planets[i].resources[j].sell_price):
+                    ranges[j]['sell'] = planets[i].resources[j].sell_price
+                    ranges[j]['to'] = i
+
     # compute diff
     for i in ranges:
         ranges[i]['diff'] = ranges[i]['sell'] - ranges[i]['buy']
 
-    return ranges
+    ordered = orderRanges(ranges)
+
+    return ordered
 
 def getTrandingOptions(data: Data, player_id):
     my_traders: Dict[Ship] = {
