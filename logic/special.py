@@ -27,6 +27,7 @@ mapping = {"1": "Motherlode",
            "X": "Ninja"}
 
 def rename_ships(data: Data, player_id: str):
+    """For fun"""
     commands = {}
     my_ships = get_my_ships(data, player_id)
     ship_names = [my_ships[ship_id].name for ship_id in my_ships]
@@ -51,6 +52,7 @@ def rename_ships(data: Data, player_id: str):
 
 
 def kill_specific_player_fighters(data: Data, player_id: str, player_name: str):
+    """For defense against specific tactics"""
     commands = {}
     specific_player_id = [player_id for player_id, player in data.players.items() if player.name == player_name][0]
     specific_player_fighters = {ship_id: ship for ship_id, ship in data.ships.items() if

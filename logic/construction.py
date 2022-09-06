@@ -32,10 +32,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
     player_data = [data.players[x] for x in data.players if x == player_id][0]
 
     if ms:
-        # if len(my_bombers) < min_fighters and player_data.net_worth.money >= 2300000 and not SharedComms().galaxy_at_peace:
-        #     mothership_id: str = ms[0]
-        #     commands[mothership_id] = ConstructCommand("5")
-        # Build first fighter
+        # Build first fighters
         if len(my_fighters) < 2 and player_data.net_worth.money >= 3500000 and not SharedComms().galaxy_at_peace:
             logger.info(f"Building trading ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
@@ -45,7 +42,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
             logger.info(f"Building trading ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand("3")
-        # Build more bombers after domination if necessary to quell unrest in galaxy
+        # Build more fighters after domination if necessary to quell unrest in galaxy
         elif len(my_fighters) < min_fighters and player_data.net_worth.money >= 1800000 and SharedComms().galaxy_at_peace:
             logger.info(f"Building fighters. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
