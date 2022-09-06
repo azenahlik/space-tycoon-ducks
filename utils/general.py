@@ -14,6 +14,12 @@ def countDistanceShips(ship1: Ship, ship2: Ship):
         extra = 10
     return sqrt((ship1.position[0] - ship2.position[0])**2+(ship1.position[1] - ship2.position[1])**2) + extra
 
+def get_ship_speed(ship: Ship):
+    if ship.ship_class == "3":
+        return 13
+    elif ship.ship_class == "3":
+        return 18
+
 
 class SharedComms(metaclass=Singleton):
     def __init__(self):

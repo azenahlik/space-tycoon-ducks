@@ -5,8 +5,13 @@ user: "ducks"
 password: "ducklings"
 logging_config: "log/logging.ini"
 
+
+# production
+# host: "https://space-tycoon.garage-trip.cz"
+# user: "ducks"
+# password: "ducklings"
+
 # dev 
 # host: "46.101.112.32"
-# #host: "?"
 # user: "ducks"
-# password: "123"
+# password: "ducklings"
