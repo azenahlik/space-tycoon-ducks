@@ -54,7 +54,7 @@ def kill_specific_player_fighters(data: Data, player_id: str, player_name: str):
     specific_player_id = [player_id for player_id, player in data.players.items() if player.name == player_name][0]
     specific_player_fighters = {ship_id: ship for ship_id, ship in data.ships.items() if
             ship.player == specific_player_id and ship.ship_class == "4"}
-    logger.info(f'Fighters for player {player_name} ({specific_player_id}) are priority targets: {specific_player_fighters.keys()}')
+    logger.info(f'Fighters for player {player_name} ({specific_player_id}) are priority targets: {list(specific_player_fighters.keys())}')
     my_fighters = get_my_attack_ships(data, player_id, False)
     if specific_player_fighters:
         for fighter_id in my_fighters:
