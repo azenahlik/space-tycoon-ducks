@@ -39,7 +39,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
         if len(my_fighters) < 1 and player_data.net_worth.money >= 4000000 and not SharedComms().galaxy_at_peace:
             logger.info(f"Building trading ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
-            commands[mothership_id] = ConstructCommand("3")
+            commands[mothership_id] = ConstructCommand("4")
         # Build shipper army
         elif player_data.net_worth.money >= 2300000 and SharedComms().galaxy_at_peace:
             logger.info(f"Building trading ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
@@ -51,7 +51,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand("4")
         else:
-            logger.info('No need to build!')
+            logger.info(f'No need to build! Money remaining: {player_data.net_worth.money}')
             return commands
     else:
         logger.info("No MS to build fighters!")
