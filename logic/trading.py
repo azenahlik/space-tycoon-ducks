@@ -3,9 +3,8 @@ from logic.utils.ships import HAULER, SHIPPER
 from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.planet import Planet
-from utils.general import countDistanceShips, get_ship_speed
+from utils.general import countDistanceShips, count_distance_between_positions, get_ship_speed
 from typing import Dict
-from random import randint
 
 def getResourceWithLowestPrice(resources):
     lowestPrice = 99999999999
@@ -19,6 +18,19 @@ def getResourceWithLowestPrice(resources):
 
     return resourceIdToBuy
 
+# TODO
+def count_money_per_tick_from_position_to_planet(resource_id, start_position, planet, speed = 18, amount = 10):
+    distance = count_distance_between_positions(start_position, planet.position)
+    ticks = math.ceil(distance / speed) + 1
+    resource = planet.resources[resource_id]
+    resource_price = 0
+
+    if resource.sell_price:
+        resource_price = resource.sell_price
+    
+    money_per_ticks = (resource_price * amount) / ticks
+
+    return money_per_ticks
 
 def count_money_per_tick(ship: Ship, planet: Planet, resource_id_to_sell: str, amount = 10):
     distance = countDistanceShips(ship, planet)
@@ -50,6 +62,11 @@ def canBeTradeCommandFullfiled(ship, data):
     target_resource = ship.command.resource
     target_amount = ship.command.amount
     target_target = ship.command.target
+
+    # non trade commands are fullfiled
+    if ship.command.type != 'trade':
+        return True
+    
     command_type = 'buy'
 
     if target_amount < 0:
@@ -103,7 +120,6 @@ def countDistance(ship, planet):
     return countDistanceShips(ship, planet)
 
 
-
 def findTradingOption(ship, data, planetsToExclude):
     planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if key not in planetsToExclude and hasPlanetResourcesToSell(planet)}
 
@@ -135,6 +151,44 @@ def find_optimal_buy_option(ship, data, planetsToExclude):
         "resource_id": getResourceWithLowestPrice(target_planet[1].resources)
     }
 
+# TODO:
+def calculate_best_optimal_trade_by_planet(data: Data):
+    trades_by_planet = {}
+    for planet_id, planet in data.planets.items():
+        # best_mpt_13 = 0;
+        # best_mpt_13_planet_touple = list(data.planets.items())[0]
+        # best_mpt_13_resource = None
+        # best_mpt_18 = 0;
+        # best_mpt_18_planet_touple = best_mpt_13_planet_touple
+        # best_mpt_18_resource = None
+
+        trade_by_resource = {}
+        best_trade = {
+            "resource_id": None,
+            "mpt": 0,
+            "sell_planet_id": None,
+        }
+
+        for resource_id, resource in planet.resources.items():
+            print(resource_id, resource)
+            if resource.buy_price == None or resource.amount < 10:
+                continue
+            
+            # only buyable
+            optimalTrade = find_optimal_sell_option_for_resource(data, resource_id, planet.position)
+            trade_by_resource[resource_id] = {
+                "mpt": optimalTrade[1],
+                "resource_id": resource_id,
+                "sell_planet_id":optimalTrade[0][0]
+            }
+
+            if trade_by_resource[resource_id]["mpt"] > best_trade["mpt"]:
+                best_trade = trade_by_resource[resource_id]
+        
+        trades_by_planet[planet_id] = {
+            "best_trade": best_trade,
+            "resource_trades": trade_by_resource
+        }
 
 def findSellOption(ship, data):
     resourceIdToSell = list(ship.resources.keys())[0]
@@ -162,6 +216,27 @@ def find_optimal_sell_option(ship, data):
     sorted_planets_by_mpt = sorted(planetsWithTradingOptions.items(), key=lambda x: count_money_per_tick(ship, x[1], resourceIdToSell), reverse=True)
 
     return sorted_planets_by_mpt[0]
+
+# TODO:
+def find_optimal_sell_option_for_resource(data, resource_id, position, amount = 10, expected_speed = 18):
+    planets_whos_buying = {key: planet for key, planet in data.planets.items() if isPlanetBuyingResource(planet, resource_id)}
+    
+    result_planet = None
+    best_mpt = 0
+
+    for planet_id, planet in planets_whos_buying.items():
+        current_planet_mpt = count_money_per_tick_from_position_to_planet(resource_id, position, planet, amount, expected_speed)
+        if current_planet_mpt > best_mpt or result_planet == None:
+            best_mpt = current_planet_mpt
+            result_planet = (planet_id, planet)
+
+    # sorted_planets_by_mpt = sorted(
+    #     planets_whos_buying.items(),
+    #     key=lambda x: count_money_per_tick_from_position_to_planet(resource_id, position, x[1], amount, expected_speed),
+    #     reverse=True
+    # )
+
+    return (result_planet, best_mpt)
 
 def orderRanges(ranges):
     return sorted(ranges.items(), key=lambda x: x[1]['diff'], reverse=True)
@@ -211,6 +286,10 @@ def planetsInrange(planets, position, maxDistance):
     return {i: planets[i] for i in planets if distanceSqr(planets[i].position, position) < maxDistance * maxDistance}
 
 def get_trading_commands(data: Data, player_id):
+    # TODO
+    # optimal_trades_by_planet = calculate_best_optimal_trade_by_planet(data)
+
+    # ship filtering
     my_traders: Dict[Ship] = {
         ship_id: ship for ship_id, ship in data.ships.items() if ship.player == player_id and ship.ship_class in [HAULER, SHIPPER]
     }
@@ -238,6 +317,8 @@ def get_trading_commands(data: Data, player_id):
     planetsToExclude = []
     resources_to_exclude = []
     traders_with_new_command = []
+
+    # print(optimal_trades_by_planet)
 
 
     # print('TRADERS WITH CARGO', traders_with_cargo)
