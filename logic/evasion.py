@@ -8,8 +8,15 @@ from utils.ship_helpers import get_enemy_attack_ships
 from typing import Dict, List
 
 
+def normalize_vector(vector):
+    vector_size = math.sqrt(
+        vector[0]**2 + vector[1]**2
+    )
+    return [vector[0] / vector_size, vector[1] / vector_size];
+
+
 def select_enemy_ships_in_radius_by_distance(trader: Ship, enemy_battle_ships: Dict):
-    enemy_ships_in_radius = {ship_id: ship for ship_id, ship in enemy_battle_ships.items() if countDistanceShips(trader, ship) >= 20}
+    enemy_ships_in_radius = {ship_id: ship for ship_id, ship in enemy_battle_ships.items() if countDistanceShips(trader, ship) < 40}
     return sorted(enemy_ships_in_radius.items(), key=lambda x: countDistanceShips(trader, x[1]))
 
 
@@ -29,9 +36,12 @@ def get_evasion_commands(data: Data, player_id):
             # evasion tactics
             nearest_enemy_touple = enemy_ships[0]
             nearest_enemy_ship_position = nearest_enemy_touple[1].position
+            vector_x = trader.position[0] - nearest_enemy_ship_position[0]
+            vector_y = trader.position[1] - nearest_enemy_ship_position[1]
+            normalized = normalize_vector([vector_x, vector_y])
             evade_position = [
-                trader.position[0] + (nearest_enemy_ship_position[0] - trader.position[0]) + 10,
-                trader.position[1] + (nearest_enemy_ship_position[1] - trader.position[1]) + 10
+                trader.position[0] + math.ceil(50 * normalized[0]),
+                trader.position[1] + math.ceil(50 * normalized[1])
             ]
             commands[trader_id] = {
                 "destination": {
