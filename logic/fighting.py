@@ -39,9 +39,8 @@ def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
     closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, chosen_enemy_ships)
     player_data = [data.players[x] for x in data.players if x == player_id][0]
 
-    SharedComms().mothership_distance_from_enemies = min([list(x.values())[0] for x in closest_filtered_enemy_ships])
-
     if len(chosen_enemy_ships):
+        SharedComms().mothership_distance_from_enemies = min([list(x.values())[0] for x in closest_filtered_enemy_ships])
         if player_data.net_worth.money > 300000 or SharedComms().mothership_distance_from_enemies < 200 or no_enemy_attack_ships:
             commands[ms[0]] = AttackCommand(list(closest_filtered_enemy_ships[0].keys())[0])
             logger.info(f'MS ({list(mothership.values())[0].name}) attacking enemy ship ID {list(chosen_enemy_ships.keys())[0]}')
