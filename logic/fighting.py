@@ -117,9 +117,9 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
                 logger.info(f"Healing bomber ({attack_ship}) {my_attack_ships[attack_ship].name} safely")
                 commands[attack_ship] = RepairCommand()
 
-    for attack_ship in my_fighter_ships:
-        if my_attack_ships[attack_ship].life < 100:
-            logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
-            commands[attack_ship] = RepairCommand()
+    # for attack_ship in my_fighter_ships:
+    #     if my_attack_ships[attack_ship].life < 100:
+    #         logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
+    #         commands[attack_ship] = RepairCommand()
 
     return commands
