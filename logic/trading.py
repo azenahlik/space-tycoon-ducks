@@ -104,18 +104,29 @@ def countDistance(ship, planet):
 
 
 
-def findTradingOption(ship, data, planetsToExclude, resources_to_exclude):
-    # OLD
-    # planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if key not in planetsToExclude and hasPlanetResourcesToSell(planet)}
-
-    # sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
-
-
+def findTradingOption(ship, data, planetsToExclude):
     planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if key not in planetsToExclude and hasPlanetResourcesToSell(planet)}
 
     sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
 
     print(sortedPlanets)
+
+    target_planet = sortedPlanets[0]
+
+    return {
+        "planet_id": target_planet[0],
+        "resource_id": getResourceWithLowestPrice(target_planet[1].resources)
+    }
+
+def find_optimal_buy_option(ship, data, planetsToExclude):
+    planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if key not in planetsToExclude and hasPlanetResourcesToSell(planet)}
+
+    # sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
+
+    # for planet_touple in planetsWithTradingOptions:
+
+
+    # print(sortedPlanets)
 
     target_planet = sortedPlanets[0]
 
@@ -204,7 +215,7 @@ def get_trading_commands(data: Data, player_id):
         ship_id: ship for ship_id, ship in data.ships.items() if ship.player == player_id and ship.ship_class in [HAULER, SHIPPER]
     }
 
-    print('TRADERS', my_traders)
+    # print('TRADERS', my_traders)
 
     traders_without_command = {
         ship_id: ship for ship_id, ship in my_traders.items() if not ship.command or not canBeTradeCommandFullfiled(ship, data)
@@ -260,7 +271,7 @@ def get_trading_commands(data: Data, player_id):
     #     }
 
     for shipId, ship in traders_without_cargo.items():
-        trade_option = findTradingOption(ship, data, planetsToExclude, resources_to_exclude)
+        trade_option = findTradingOption(ship, data, planetsToExclude)
 
         planetsToExclude.append(trade_option['planet_id'])
         commands[shipId] = {
