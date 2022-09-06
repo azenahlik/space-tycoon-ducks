@@ -29,6 +29,7 @@ def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
 
     SharedComms().past_mothership_positions = SharedComms().past_mothership_positions[-29:] + [list(mothership.values())[0].position]
     logger.info(f"Past MS positions: {SharedComms().past_mothership_positions}")
+    logger.info(f"MS distance from enemies: {SharedComms().mothership_distance_from_enemies}")
     chosen_enemy_ships: Dict[Ship] = get_enemy_attack_ships(data, player_id)
     no_enemy_attack_ships = False
     if chosen_enemy_ships == {}:

@@ -113,7 +113,7 @@ class Game:
         # Attack Commands
         ms_attack_commands = get_ms_fighting_commands(self.data, self.player_id)
         commands.update(ms_attack_commands)
-        fighter_attack_commands = get_fighter_fighting_commands(self.data, self.player_id, 5)
+        fighter_attack_commands = get_fighter_fighting_commands(self.data, self.player_id, 20)
         commands.update(fighter_attack_commands)
         fixing_commands = get_repair_commands(self.data, self.player_id)
         commands.update(fixing_commands)
