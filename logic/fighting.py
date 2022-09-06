@@ -140,7 +140,7 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
 
     if SharedComms().fighter_regen_enabled:
         for attack_ship in my_fighter_ships:
-            if my_attack_ships[attack_ship].life < 100:
+            if my_attack_ships[attack_ship].life < 70:
                 logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
                 commands[attack_ship] = RepairCommand()
 
