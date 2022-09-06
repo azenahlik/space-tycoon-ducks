@@ -8,6 +8,7 @@ from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.destination import Destination
 # from space_tycoon_client.models.target import Target
+from utils.general import SharedComms
 import logging
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,10 @@ def kill_specific_player_fighters(data: Data, player_id: str, player_name: str):
     logger.info(f'Fighters for player {player_name} ({specific_player_id}) are priority targets: {list(specific_player_fighters.keys())}')
     my_fighters = get_my_attack_ships(data, player_id, False)
     if specific_player_fighters:
+        SharedComms().fighter_regen_enabled = True
         for fighter_id in my_fighters:
             closest_specific_player_fighters = get_closest_ships(data, player_id, {fighter_id: my_fighters[fighter_id]}, specific_player_fighters)
             commands[fighter_id] = AttackCommand(list(closest_specific_player_fighters[0].keys())[0])
+    else:
+        SharedComms().fighter_regen_enabled = False
     return commands

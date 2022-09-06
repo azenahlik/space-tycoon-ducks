@@ -26,6 +26,17 @@ class SharedComms(metaclass=Singleton):
         self._galaxy_at_peace = False
         self.mothership_distance_from_enemies = 1
         self.past_mothership_positions = []
+        self._fighter_regen_enabled = False
+
+    @property
+    def fighter_regen_enabled(self) -> bool:
+        return self._fighter_regen_enabled
+
+    @fighter_regen_enabled.setter
+    def fighter_regen_enabled(self, value: bool):
+        if self._fighter_regen_enabled != value:
+            logger.info(f"Fighter regen {'enabled' if value else 'disabled'}!")
+        self._fighter_regen_enabled = value
 
     @property
     def galaxy_at_peace(self) -> bool:
