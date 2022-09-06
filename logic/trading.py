@@ -109,7 +109,7 @@ def findTradingOption(ship, data, planetsToExclude):
 
     sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
 
-    print(sortedPlanets)
+    # print(sortedPlanets)
 
     target_planet = sortedPlanets[0]
 
