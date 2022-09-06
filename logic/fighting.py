@@ -58,7 +58,7 @@ def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: in
         return commands
     ms = [ship_id for ship_id, ship in my_attack_ships.items() if ship.ship_class == "1"]
     mothership = get_mothership(data, player_id)
-    chosen_enemy_ships: Dict[Ship] = get_enemy_attack_ships(data, player_id, False)
+    chosen_enemy_ships: Dict[Ship] = get_enemy_attack_ships(data, player_id, True)
     if chosen_enemy_ships == {}:
         chosen_enemy_ships: Dict[Ship] = get_enemy_attack_ships(data, player_id)
     no_enemy_attack_ships = False
