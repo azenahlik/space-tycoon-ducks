@@ -54,3 +54,9 @@ def get_closest_ships(data: Data, player_id: str, my_ship: Ship, enemy_ship_dict
     distances_by_shortest = sorted(distances, key=lambda d: list(d.values())[0])
     return distances_by_shortest
 
+
+def get_ships_in_range(data: Data, player_id: str, my_ship: Ship, enemy_ship_dict: dict, distance: int) -> dict:
+    ships = {x: enemy_ship_dict[x] for x in enemy_ship_dict if
+             get_distance_ships(list(my_ship.values())[0], enemy_ship_dict[x]) < distance}
+    return ships
+

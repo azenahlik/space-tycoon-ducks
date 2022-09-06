@@ -11,7 +11,7 @@ import logging
 
 from utils.general import SharedComms
 from utils.ship_helpers import get_my_attack_ships, get_enemy_attack_ships,\
-    get_mothership, get_distance_ships_ms_extra, get_enemy_ships, get_closest_ships
+    get_mothership, get_distance_ships_ms_extra, get_enemy_ships, get_closest_ships, get_ships_in_range
 
 
 logger = logging.getLogger(__name__)
@@ -87,32 +87,40 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
 
     my_attack_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                    data.ships.items() if ship.player == player_id and ship.ship_class in ["1","4","5"]}
-    my_heavy_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
+    my_mothership: Dict[Ship] = {ship_id: ship for ship_id, ship in
+                                  data.ships.items() if
+                                  ship.player == player_id and ship.ship_class == "1"}
+    my_bombers: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                    data.ships.items() if
-                                   ship.player == player_id and ship.ship_class in ["1", "5"]}
+                                   ship.player == player_id and ship.ship_class == "5"}
     my_fighter_ships: Dict[Ship] = {ship_id: ship for ship_id, ship in
                                    data.ships.items() if
-                                   ship.player == player_id and ship.ship_class in ["4"]}
+                                   ship.player == player_id and ship.ship_class == "4"}
 
     if len(my_attack_ships):
         logger.info(f'Ship health log: {[(my_attack_ships[attack_ship].name, my_attack_ships[attack_ship].life) for attack_ship in my_attack_ships]}')
     else:
         return commands
 
-    for attack_ship in my_heavy_ships:
+    enemy_ships = get_enemy_ships(data, player_id)
+
+    for attack_ship in my_mothership:
         if my_attack_ships[attack_ship].life < 190:
-            try:
-                logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
-            except:
-                pass  # just before sleep and not taking chances
+            logger.info(f"Healing mothership ({attack_ship}) {my_attack_ships[attack_ship].name}")
             commands[attack_ship] = RepairCommand()
+    for attack_ship in my_bombers:
+        if len(get_ships_in_range(data, player_id, attack_ship, enemy_ships, 300)) > 1:
+            if my_attack_ships[attack_ship].life < 190:
+                logger.info(f"Healing bomber ({attack_ship}) {my_attack_ships[attack_ship].name} in danger")
+                commands[attack_ship] = RepairCommand()
+        else:
+            if my_attack_ships[attack_ship].life < 150:
+                logger.info(f"Healing bomber ({attack_ship}) {my_attack_ships[attack_ship].name} safely")
+                commands[attack_ship] = RepairCommand()
 
     for attack_ship in my_fighter_ships:
         if my_attack_ships[attack_ship].life < 100:
-            try:
-                logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
-            except:
-                pass  # just before sleep and not taking chances
+            logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
             commands[attack_ship] = RepairCommand()
 
     return commands
