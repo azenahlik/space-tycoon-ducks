@@ -20,7 +20,8 @@ mapping = {"1": "Motherlode",
            "4": "Redeye",
            "5": "Tyrant",
            "6": "Balrog",
-           "7": "GiantFortress"}
+           "7": "GiantFortress",
+           "X": "Ninja"}
 
 def rename_ships(data: Data, player_id: str):
     commands = {}
@@ -28,7 +29,11 @@ def rename_ships(data: Data, player_id: str):
     ship_names = [my_ships[ship_id].name for ship_id in my_ships]
     for ship_id in my_ships:
         ship = my_ships[ship_id]
-        if f"{mapping[ship.ship_class]}" not in ship.name:
+        if ship.ship_class == "4" and "Ninja" not in ship_names:
+            commands[ship_id] = RenameCommand("Ninja")
+            ship_names.append("Ninja")
+            continue
+        if f"{mapping[ship.ship_class]}" not in ship.name and ship.name != "Ninja":
             name = f"{mapping[ship.ship_class]}_1"
             i = 1
             while name in ship_names:
@@ -37,3 +42,6 @@ def rename_ships(data: Data, player_id: str):
             commands[ship_id] = RenameCommand(name)
             ship_names.append(name)
     return commands
+
+
+def run_command()

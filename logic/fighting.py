@@ -66,6 +66,7 @@ def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: in
         no_enemy_attack_ships = True
     closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, chosen_enemy_ships)
 
+
     if len(chosen_enemy_ships):
         if ms and SharedComms().mothership_distance_from_enemies > aggro_distance and not no_enemy_attack_ships:
             for attack_ship in my_attack_ships_without_ms:
@@ -79,6 +80,10 @@ def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: in
                 logger.info(f'Fighter {attack_ship} attacking enemy fighter ID {list(chosen_enemy_ships.keys())[0]}')
 
     return commands
+
+
+def get_sabotage_commands(data: Data, player_id: str) -> dict:
+    pass
 
 
 def get_repair_commands(data: Data, player_id: str) -> dict:
@@ -104,7 +109,7 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
     enemy_ships = get_enemy_ships(data, player_id)
 
     for attack_ship in my_mothership:
-        if my_attack_ships[attack_ship].life < 190:
+        if my_attack_ships[attack_ship].life < 250:
             logger.info(f"Healing mothership ({attack_ship}) {my_attack_ships[attack_ship].name}")
             commands[attack_ship] = RepairCommand()
     for attack_ship in my_bombers:
