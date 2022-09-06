@@ -44,4 +44,4 @@ def rename_ships(data: Data, player_id: str):
     return commands
 
 
-def run_command()
+# def run_command()
