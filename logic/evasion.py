@@ -16,7 +16,7 @@ def normalize_vector(vector):
 
 
 def select_enemy_ships_in_radius_by_distance(trader: Ship, enemy_battle_ships: Dict):
-    enemy_ships_in_radius = {ship_id: ship for ship_id, ship in enemy_battle_ships.items() if countDistanceShips(trader, ship) < 40}
+    enemy_ships_in_radius = {ship_id: ship for ship_id, ship in enemy_battle_ships.items() if countDistanceShips(trader, ship) < 60}
     return sorted(enemy_ships_in_radius.items(), key=lambda x: countDistanceShips(trader, x[1]))
 
 
@@ -40,8 +40,8 @@ def get_evasion_commands(data: Data, player_id):
             vector_y = trader.position[1] - nearest_enemy_ship_position[1]
             normalized = normalize_vector([vector_x, vector_y])
             evade_position = [
-                trader.position[0] + math.ceil(50 * normalized[0]),
-                trader.position[1] + math.ceil(50 * normalized[1])
+                trader.position[0] + math.ceil(40 * normalized[0]),
+                trader.position[1] + math.ceil(40 * normalized[1])
             ]
             commands[trader_id] = {
                 "destination": {
