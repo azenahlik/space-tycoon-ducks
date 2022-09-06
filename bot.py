@@ -38,7 +38,7 @@ else:
 from logic.fighting import get_fighter_fighting_commands, get_ms_fighting_commands, get_repair_commands
 from logic.construction import get_fighter_construction_commands
 from logic.trading import get_trading_commands
-from logic.special import rename_ships
+from logic.special import rename_ships, kill_specific_player_fighters
 
 
 class ConfigException(Exception):
@@ -114,7 +114,7 @@ class Game:
         # Attack Commands
         ms_attack_commands = get_ms_fighting_commands(self.data, self.player_id)
         commands.update(ms_attack_commands)
-        fighter_attack_commands = get_fighter_fighting_commands(self.data, self.player_id, 20)
+        fighter_attack_commands = get_fighter_fighting_commands(self.data, self.player_id, 300)
         commands.update(fighter_attack_commands)
         fixing_commands = get_repair_commands(self.data, self.player_id)
         commands.update(fixing_commands)
@@ -135,6 +135,8 @@ class Game:
         # Special Commands
         special_commands = rename_ships(self.data, self.player_id)
         commands.update(special_commands)
+        special_kill_commands = kill_specific_player_fighters(self.data, self.player_id, "amazon")
+        commands.update(special_kill_commands)
 
         logger.info(commands)
         pprint(commands) if commands else None

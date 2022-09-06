@@ -30,20 +30,25 @@ def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
     SharedComms().past_mothership_positions = SharedComms().past_mothership_positions[-29:] + [list(mothership.values())[0].position]
     logger.info(f"Past MS positions: {SharedComms().past_mothership_positions}")
     logger.info(f"MS distance from enemies: {SharedComms().mothership_distance_from_enemies}")
-    chosen_enemy_ships: Dict[Ship] = get_enemy_attack_ships(data, player_id)
+    chosen_enemy_ships: Dict[Ship] = get_enemy_ships(data, player_id, ["1"])
     no_enemy_attack_ships = False
     if chosen_enemy_ships == {}:
-        chosen_enemy_ships: Dict[Ship] = get_enemy_ships(data, player_id)
-        no_enemy_attack_ships = True
-        SharedComms().galaxy_at_peace = True
+        chosen_enemy_ships: Dict[Ship] = get_enemy_attack_ships(data, player_id)
+        if chosen_enemy_ships == {}:
+            chosen_enemy_ships: Dict[Ship] = get_enemy_ships(data, player_id)
+            no_enemy_attack_ships = True
+            SharedComms().galaxy_at_peace = True
     closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, chosen_enemy_ships)
     player_data = [data.players[x] for x in data.players if x == player_id][0]
 
     if len(chosen_enemy_ships):
         SharedComms().mothership_distance_from_enemies = min([list(x.values())[0] for x in closest_filtered_enemy_ships])
         if player_data.net_worth.money > 300000 or SharedComms().mothership_distance_from_enemies < 200 or no_enemy_attack_ships:
+            recalculated_enemy_ships = get_enemy_attack_ships(data, player_id)
+            if recalculated_enemy_ships:
+                closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, recalculated_enemy_ships)
             commands[ms[0]] = AttackCommand(list(closest_filtered_enemy_ships[0].keys())[0])
-            logger.info(f'MS ({list(mothership.values())[0].name}) attacking enemy ship ID {list(chosen_enemy_ships.keys())[0]}')
+            logger.info(f'MS ({list(mothership.values())[0].name}) attacking enemy ship ID {list(closest_filtered_enemy_ships[0].keys())[0]}')
 
     return commands
 
@@ -56,29 +61,34 @@ def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: in
     if not my_attack_ships_without_ms:
         return commands
     ms = [ship_id for ship_id, ship in my_attack_ships.items() if ship.ship_class == "1"]
-    mothership = get_mothership(data, player_id)
+    # mothership = get_mothership(data, player_id)
     chosen_enemy_ships: Dict[Ship] = get_enemy_attack_ships(data, player_id, True)
     if chosen_enemy_ships == {}:
         chosen_enemy_ships: Dict[Ship] = get_enemy_attack_ships(data, player_id)
-    no_enemy_attack_ships = False
     if chosen_enemy_ships == {}:
         chosen_enemy_ships: Dict[Ship] = get_enemy_ships(data, player_id)
-        no_enemy_attack_ships = True
-    closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, chosen_enemy_ships)
+    #closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, chosen_enemy_ships)
+
 
     if len(chosen_enemy_ships):
-        if ms and SharedComms().mothership_distance_from_enemies > aggro_distance and not no_enemy_attack_ships:
+        if ms and SharedComms().mothership_distance_from_enemies > aggro_distance and not SharedComms().galaxy_at_peace:
             for attack_ship in my_attack_ships_without_ms:
                 past_ms_positions = SharedComms().past_mothership_positions
                 mothership_follow_pos = past_ms_positions[-min(len(past_ms_positions), follow_distance)]
                 commands[attack_ship] = MoveCommand(destination=Destination(coordinates=mothership_follow_pos))
                 logger.info(f'Fighter {attack_ship} is staying with MS')
         else:
+            enemy_trade_ships = get_enemy_ships(data, player_id, ['2', '3', '7'])
             for attack_ship in my_attack_ships_without_ms:
+                closest_filtered_enemy_ships = get_closest_ships(data, player_id, {ship_id: my_attack_ships_without_ms[ship_id] for ship_id in my_attack_ships_without_ms}, enemy_trade_ships)
                 commands[attack_ship] = AttackCommand(list(closest_filtered_enemy_ships[0].keys())[0])
-                logger.info(f'Fighter {attack_ship} attacking enemy fighter ID {list(chosen_enemy_ships.keys())[0]}')
+                logger.info(f'Fighter {attack_ship} is going crazy!')
 
     return commands
+
+
+def get_sabotage_commands(data: Data, player_id: str) -> dict:
+    pass
 
 
 def get_repair_commands(data: Data, player_id: str) -> dict:
@@ -104,7 +114,7 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
     enemy_ships = get_enemy_ships(data, player_id)
 
     for attack_ship in my_mothership:
-        if my_attack_ships[attack_ship].life < 190:
+        if my_attack_ships[attack_ship].life < 250:
             logger.info(f"Healing mothership ({attack_ship}) {my_attack_ships[attack_ship].name}")
             commands[attack_ship] = RepairCommand()
     for attack_ship in my_bombers:
@@ -117,9 +127,9 @@ def get_repair_commands(data: Data, player_id: str) -> dict:
                 logger.info(f"Healing bomber ({attack_ship}) {my_attack_ships[attack_ship].name} safely")
                 commands[attack_ship] = RepairCommand()
 
-    # for attack_ship in my_fighter_ships:
-    #     if my_attack_ships[attack_ship].life < 100:
-    #         logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
-    #         commands[attack_ship] = RepairCommand()
+    for attack_ship in my_fighter_ships:
+        if my_attack_ships[attack_ship].life < 100:
+            logger.info(f"Healing attack ship {my_attack_ships[attack_ship].name}")
+            commands[attack_ship] = RepairCommand()
 
     return commands

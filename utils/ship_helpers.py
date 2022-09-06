@@ -33,9 +33,11 @@ def get_enemy_attack_ships(data: Data, player_id: str, include_ms: bool = True) 
             ship.player != player_id and ship.ship_class in ["1" if include_ms else "X", "4", "5"]}
 
 
-def get_enemy_ships(data: Data, player_id: str) -> Dict:
+def get_enemy_ships(data: Data, player_id: str, class_filter_list: list = []) -> Dict:
+    if not class_filter_list:
+        class_filter_list = [str(x) for x in range(1, 8)]
     return {ship_id: ship for ship_id, ship in data.ships.items() if
-            ship.player != player_id}
+            ship.player != player_id and ship.ship_class in class_filter_list}
 
 
 def get_mothership(data: Data, player_id: str) -> Dict:
