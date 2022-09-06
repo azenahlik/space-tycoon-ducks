@@ -21,6 +21,7 @@ from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.static_data import StaticData
 from space_tycoon_client.rest import ApiException
 import logging.config
+from logic.evasion import get_evasion_commands
 
 CONFIG_FILE = "config.yml"
 
@@ -121,6 +122,10 @@ class Game:
         # Construction Commands
         construction_commands = get_fighter_construction_commands(self.data, self.player_id, 3)
         commands.update(construction_commands)
+
+        # Evasion
+        evasion_commands = get_evasion_commands(self.data, self.player_id)
+        commands.update(evasion_commands)
 
         # # Trade Commands
         trade_commands = get_trading_commands(self.data, self.player_id)

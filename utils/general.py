@@ -8,6 +8,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def count_distance_between_positions(positionA, positionB):
+    return sqrt((positionA[0] - positionB[0])**2+(positionA[1] - positionB[1])**2)
+
 def countDistanceShips(ship1: Ship, ship2: Ship):
     extra = 0  # Hack to prefer fighters over motherships
     if "ship_class" in ship2.__dict__.keys() and ship2.ship_class == "1":
