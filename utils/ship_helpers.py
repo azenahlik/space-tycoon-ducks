@@ -44,9 +44,7 @@ def get_mothership(data: Data, player_id: str) -> Dict:
 
 
 def get_distance_ships(ship1: Ship, ship2: Ship):
-    extra = 0  # Hack to prefer fighters over motherships
-    if "ship_class" in ship2.__dict__.keys() and ship2.ship_class == "1":
-        extra = 10
+    extra = 10 if ship2.ship_class == "1" else 0
     return sqrt((ship1.position[0] - ship2.position[0])**2+(ship1.position[1] - ship2.position[1])**2) + extra
 
 

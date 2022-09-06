@@ -27,6 +27,8 @@ def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
     if not ms:
         return commands
 
+    SharedComms().past_mothership_positions = SharedComms().past_mothership_positions[-29:] + [list(mothership.values())[0].position]
+    logger.info(f"Past MS positions: {SharedComms().past_mothership_positions}")
     chosen_enemy_ships: Dict[Ship] = get_enemy_attack_ships(data, player_id)
     no_enemy_attack_ships = False
     if chosen_enemy_ships == {}:
@@ -36,15 +38,17 @@ def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
     closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, chosen_enemy_ships)
     player_data = [data.players[x] for x in data.players if x == player_id][0]
 
+    SharedComms().mothership_distance_from_enemies = min([list(x.values())[0] for x in closest_filtered_enemy_ships])
+
     if len(chosen_enemy_ships):
-        if player_data.net_worth.money > 300000 or list(closest_filtered_enemy_ships[0].values())[0] < 200 or no_enemy_attack_ships:
+        if player_data.net_worth.money > 300000 or SharedComms().mothership_distance_from_enemies < 200 or no_enemy_attack_ships:
             commands[ms[0]] = AttackCommand(list(closest_filtered_enemy_ships[0].keys())[0])
             logger.info(f'MS ({list(mothership.values())[0].name}) attacking enemy ship ID {list(chosen_enemy_ships.keys())[0]}')
 
     return commands
 
 
-def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: int) -> dict:
+def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: int, follow_distance:int = 20) -> dict:
     commands = {}
     my_attack_ships: Dict[Ship] = get_my_attack_ships(data, player_id)
     my_attack_ships_without_ms: Dict[Ship] = get_my_attack_ships(data, player_id, False)
@@ -63,9 +67,11 @@ def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: in
     closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, chosen_enemy_ships)
 
     if len(chosen_enemy_ships):
-        if ms and min([list(x.values())[0] for x in closest_filtered_enemy_ships]) > aggro_distance and not no_enemy_attack_ships:
+        if ms and SharedComms().mothership_distance_from_enemies > aggro_distance and not no_enemy_attack_ships:
             for attack_ship in my_attack_ships_without_ms:
-                commands[attack_ship] = MoveCommand(destination=Destination(target=ms[0]))
+                past_ms_positions = SharedComms().past_mothership_positions
+                mothership_follow_pos = past_ms_positions[-min(len(past_ms_positions), follow_distance)]
+                commands[attack_ship] = MoveCommand(destination=Destination(coordinates=mothership_follow_pos))
                 logger.info(f'Fighter {attack_ship} is staying with MS')
         else:
             for attack_ship in my_attack_ships_without_ms:

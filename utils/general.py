@@ -18,6 +18,8 @@ def countDistanceShips(ship1: Ship, ship2: Ship):
 class SharedComms(metaclass=Singleton):
     def __init__(self):
         self._galaxy_at_peace = False
+        self.mothership_distance_from_enemies = 1
+        self.past_mothership_positions = []
 
     @property
     def galaxy_at_peace(self) -> bool:
