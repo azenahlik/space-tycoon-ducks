@@ -130,7 +130,7 @@ class Game:
         # Special Commands
         special_commands = rename_ships(self.data, self.player_id)
         commands.update(special_commands)
-        special_kill_commands = kill_specific_player_fighters(self.data, self.player_id, "test")
+        special_kill_commands = kill_specific_player_fighters(self.data, self.player_id, "amazon")
         commands.update(special_kill_commands)
 
         logger.info(commands)
