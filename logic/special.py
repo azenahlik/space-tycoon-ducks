@@ -10,6 +10,8 @@ from space_tycoon_client.models.destination import Destination
 # from space_tycoon_client.models.target import Target
 import logging
 
+logger = logging.getLogger(__name__)
+
 from utils.general import countDistanceShips
 from utils.ship_helpers import get_my_attack_ships, get_enemy_attack_ships,\
     get_mothership, get_distance_ships_ms_extra, get_enemy_ships, get_closest_ships, get_my_ships
@@ -45,3 +47,17 @@ def rename_ships(data: Data, player_id: str):
 
 
 # def run_command()
+
+
+def kill_specific_player_fighters(data: Data, player_id: str, player_name: str):
+    commands = {}
+    specific_player_id = [player_id for player_id, player in data.players.items() if player.name == player_name][0]
+    specific_player_fighters = {ship_id: ship for ship_id, ship in data.ships.items() if
+            ship.player == specific_player_id and ship.ship_class == "4"}
+    logger.info(f'Fighters for player {player_name} ({specific_player_id}) are priority targets: {specific_player_fighters}')
+    my_fighters = get_my_attack_ships(data, player_id, False)
+    if specific_player_fighters:
+        for fighter_id in my_fighters:
+            closest_specific_player_fighters = get_closest_ships(data, player_id, {fighter_id: my_fighters[fighter_id]}, specific_player_fighters)
+            commands[fighter_id] = AttackCommand(list(closest_specific_player_fighters[0].keys())[0])
+    return commands

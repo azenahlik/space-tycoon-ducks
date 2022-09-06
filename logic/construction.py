@@ -36,7 +36,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
         #     mothership_id: str = ms[0]
         #     commands[mothership_id] = ConstructCommand("5")
         # Build first fighter
-        if len(my_fighters) < 1 and player_data.net_worth.money >= 4000000 and not SharedComms().galaxy_at_peace:
+        if len(my_fighters) < 2 and player_data.net_worth.money >= 3500000 and not SharedComms().galaxy_at_peace:
             logger.info(f"Building trading ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand("4")
