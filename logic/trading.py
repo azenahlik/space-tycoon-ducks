@@ -1,8 +1,9 @@
-from math import sqrt
+import math
 from logic.utils.ships import HAULER, SHIPPER
 from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
-from utils.general import countDistanceShips
+from space_tycoon_client.models.planet import Planet
+from utils.general import countDistanceShips, get_ship_speed
 from typing import Dict
 from random import randint
 
@@ -17,6 +18,21 @@ def getResourceWithLowestPrice(resources):
             resourceIdToBuy = resourceId
 
     return resourceIdToBuy
+
+
+def count_money_per_tick(ship: Ship, planet: Planet, resource_id_to_sell: str, amount = 10):
+    distance = countDistanceShips(ship, planet)
+    ship_speed = get_ship_speed(ship)
+    ticks = math.ceil(distance / ship_speed) + 1
+    resource = planet.resources[resource_id_to_sell]
+    resource_price = 0
+
+    if resource.sell_price:
+        resource_price = resource.sell_price
+    
+    money_per_ticks = (resource_price * amount) / ticks
+
+    return money_per_ticks
 
 def select_nearest_trader(traders, planet):
     lowest_distance = 999999999999
@@ -99,6 +115,8 @@ def findTradingOption(ship, data, planetsToExclude, resources_to_exclude):
 
     sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
 
+    print(sortedPlanets)
+
     target_planet = sortedPlanets[0]
 
     return {
@@ -127,9 +145,12 @@ def find_nearest_sell_option(ship, data, radius_for_best_sell):
             biggest_sell_option = current_sell_price
             return_planet = planet_tuple
 
-    # print('TEST IN RANGE', biggest_sell_option, return_planet)
-    
-    return return_planet
+def find_optimal_sell_option(ship, data):
+    resourceIdToSell = list(ship.resources.keys())[0]
+    planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if isPlanetBuyingResource(planet, resourceIdToSell)}
+    sorted_planets_by_mpt = sorted(planetsWithTradingOptions.items(), key=lambda x: count_money_per_tick(ship, x[1], resourceIdToSell), reverse=True)
+
+    return sorted_planets_by_mpt[0]
 
 def orderRanges(ranges):
     return sorted(ranges.items(), key=lambda x: x[1]['diff'], reverse=True)
@@ -253,14 +274,20 @@ def get_trading_commands(data: Data, player_id):
     for shipId, ship in traders_with_cargo.items():
         # print('SELL COMMAND FOR', shipId)
         resourceIdToSell = list(ship.resources.keys())[0]
+        # resources map
         # resources_ranges = getResourcesRanges(data.planets, ship.position)
+
+        # DEBUG
         # print('RESOURCE RANGES', resources_ranges[resourceIdToSell])
 
         # Best sell option
         # target_planet = findSellOption(ship, data)
 
         # nearet sell option
-        target_planet = find_nearest_sell_option(ship, data, 200)
+        # target_planet = find_nearest_sell_option(ship, data, 200)
+
+        # find optimal sell option
+        target_planet = find_optimal_sell_option(ship, data)
 
         # print('SELLING TO', target_planet)
         commands[shipId] = {
@@ -269,35 +296,6 @@ def get_trading_commands(data: Data, player_id):
             "target": target_planet[0],
             "type": 'trade'
         }
-
-
-    # for shipId, ship in traders_without_command.items():
-    #     if hasResourceWithAmount(ship):
-    #         ## Selling based on finding
-    #         # targetPlanet = findSellOption(ship, data)
-    #         ## based on table
-    #         resourceIdToSell = list(ship.resources.keys())[0]
-    #         targetPlanet = resources_ranges[resourceIdToSell].to
-    #         commands[shipId] = {
-    #             "amount": -10,
-    #             "resource": resourceIdToSell,
-    #             "target": targetPlanet[0],
-    #             "type": 'trade'
-    #         }
-    #     else:
-    #         # Buying
-    #         targetPlanet = findTradingOption(ship, data, planetsToExclude, resources_ranges)
-    #         planetsToExclude.append(targetPlanet[0])
-            
-    #         resourceToBuy = getResourceWithLowestPrice(targetPlanet[1].resources)
-
-    #         commands[shipId] = {
-    #             "amount": 10,
-    #             "resource": resourceToBuy,
-    #             "target": targetPlanet[0],
-    #             "type": 'trade'
-    #         }
-    #         buy_command_index += 1
 
     return commands
     
