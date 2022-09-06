@@ -45,8 +45,8 @@ def get_mothership(data: Data, player_id: str) -> Dict:
             ship.player == player_id and ship.ship_class in ["1"]}
 
 
-def get_distance_ships(ship1: Ship, ship2: Ship):
-    extra = 10 if ship2.ship_class == "1" else 0
+def get_distance_ships(ship1: Ship, ship2: Ship, ms_penalty: bool = True):
+    extra = 10 if ship2.ship_class == "1" and ms_penalty else 0
     return sqrt((ship1.position[0] - ship2.position[0])**2+(ship1.position[1] - ship2.position[1])**2) + extra
 
 

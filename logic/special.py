@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 from utils.general import countDistanceShips
 from utils.ship_helpers import get_my_attack_ships, get_enemy_attack_ships,\
-    get_mothership, get_distance_ships_ms_extra, get_enemy_ships, get_closest_ships, get_my_ships
+    get_mothership, get_distance_ships_ms_extra, get_enemy_ships, get_closest_ships, get_my_ships, get_distance_ships
 
 mapping = {"1": "Motherlode",
            "2": "Sysiphus",
@@ -51,13 +51,25 @@ def rename_ships(data: Data, player_id: str):
 # def run_command()
 
 
-def kill_specific_player_fighters(data: Data, player_id: str, player_name: str):
+def kill_specific_player_fighters(data: Data, player_id: str, player_name: str, min_distance_to_ms: int):
     """For defense against specific tactics"""
     commands = {}
     specific_player_id = [player_id for player_id, player in data.players.items() if player.name == player_name][0]
-    specific_player_fighters = {ship_id: ship for ship_id, ship in data.ships.items() if
-            ship.player == specific_player_id and ship.ship_class == "4"}
-    logger.info(f'Fighters for player {player_name} ({specific_player_id}) are priority targets: {list(specific_player_fighters.keys())}')
+    specific_player_ms_list = list({ship_id: ship for ship_id, ship in data.ships.items() if
+                                    ship.player == specific_player_id and ship.ship_class in ["1"]}.items())
+    if specific_player_ms_list:
+        specific_player_fighters = {ship_id: ship for ship_id, ship in data.ships.items() if
+                ship.player == specific_player_id and ship.ship_class in ["4"] and get_distance_ships(ship, specific_player_ms_list[0][1]) > min_distance_to_ms}
+        logger.info(
+            f'Fighters for player {player_name} ({specific_player_id}) are priority targets: {list(specific_player_fighters.keys())}')
+    else:
+        specific_player_fighters = {ship_id: ship for ship_id, ship in data.ships.items() if
+                ship.player == specific_player_id and ship.ship_class in ["4"]}
+        if specific_player_fighters:
+            logger.info(
+                f'Fighters for player {player_name} ({specific_player_id}) without mothership are priority targets: {list(specific_player_fighters.keys())}')
+    if not specific_player_fighters:
+        logger.info(f'No priority fighters for player {player_name} ({specific_player_id})')
     my_fighters = get_my_attack_ships(data, player_id, False)
     if specific_player_fighters:
         SharedComms().fighter_regen_enabled = True

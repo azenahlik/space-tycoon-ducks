@@ -112,10 +112,11 @@ class Game:
             # commands[ship_id] = MoveCommand(type="move", destination=Destination(target=random_planet_id))
 
         # Attack Commands
-        ms_attack_commands = get_ms_fighting_commands(self.data, self.player_id)
-        commands.update(ms_attack_commands)
-        fighter_attack_commands = get_fighter_fighting_commands(self.data, self.player_id, 300)
-        commands.update(fighter_attack_commands)
+        if self.tick > 30:
+            ms_attack_commands = get_ms_fighting_commands(self.data, self.player_id)
+            commands.update(ms_attack_commands)
+            fighter_attack_commands = get_fighter_fighting_commands(self.data, self.player_id, 300)
+            commands.update(fighter_attack_commands)
         fixing_commands = get_repair_commands(self.data, self.player_id)
         commands.update(fixing_commands)
 
@@ -135,8 +136,9 @@ class Game:
         # Special Commands
         special_commands = rename_ships(self.data, self.player_id)
         commands.update(special_commands)
-        special_kill_commands = kill_specific_player_fighters(self.data, self.player_id, "amazon")
-        commands.update(special_kill_commands)
+        # if self.tick > 30:
+            # special_kill_commands = kill_specific_player_fighters(self.data, self.player_id, "amazon", 400)
+            # commands.update(special_kill_commands)
 
         logger.info(commands)
         pprint(commands) if commands else None
