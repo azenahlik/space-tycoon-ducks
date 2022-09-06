@@ -1,8 +1,8 @@
-host: "localhost"
-#host: "https://space-tycoon.garage-trip.cz"
+#host: "localhost"
+host: "https://space-tycoon.garage-trip.cz"
 #host: "?"
-user: "test"
-password: "test"
+user: "ducks"
+password: "ducklings"
 logging_config: "log/logging.ini"
 
 # dev 
