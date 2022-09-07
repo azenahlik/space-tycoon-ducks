@@ -6,6 +6,7 @@ from space_tycoon_client.models.repair_command import RepairCommand
 from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.destination import Destination
+from logic.utils.ships import HAULER, SHIPPER
 # from space_tycoon_client.models.target import Target
 from utils.general import countDistanceShips, SharedComms
 
@@ -62,3 +63,8 @@ def get_ships_in_range(data: Data, player_id: str, my_ship: Ship, enemy_ship_dic
              get_distance_ships(list(my_ship.values())[0], enemy_ship_dict[x]) < distance}
     return ships
 
+def get_ship_cargo_size(ship: Ship):
+    if ship.ship_class == HAULER:
+        return 40
+    elif ship.ship_class == SHIPPER:
+        return 10

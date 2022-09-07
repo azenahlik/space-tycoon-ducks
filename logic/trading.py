@@ -4,6 +4,7 @@ from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.planet import Planet
 from utils.general import SharedComms, countDistanceShips, count_distance_between_positions, get_ship_speed
+from utils.ship_helpers import get_ship_cargo_size
 from typing import Dict
 
 # TEST HELPER FUNCTIONS
@@ -135,10 +136,16 @@ def canBeTradeCommandFullfiled(ship, data):
     return True
 
 
-def hasPlanetResourcesToSell(planet):
+def hasPlanetResourcesToSell(planet, amount = 10):
     for id, resource in planet.resources.items():
-        if resource.buy_price != None and resource.amount >= 10:
+        if resource.buy_price != None and resource.amount >= amount:
             return True
+    return False
+
+def hasPlanetResourcesToSell_v2(planet_to_trade_map, planet_id, amount = 10):
+    if planet_to_trade_map[planet_id]['best_trade']['amount'] >= amount:
+            return True
+
     return False
 
 def hasResourceWithAmount(ship):
@@ -172,7 +179,14 @@ def findTradingOption(ship, data, planetsToExclude):
     }
 
 def find_optimal_buy_option(ship, data, planetsToExclude, trades_by_planet):
-    planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if key not in planetsToExclude and hasPlanetResourcesToSell(planet)}
+    ship_cargo_size = get_ship_cargo_size(ship)
+    planetsWithTradingOptions = {
+        planet_id: planet for planet_id, planet in data.planets.items() if planet_id not in planetsToExclude and hasPlanetResourcesToSell_v2(
+            trades_by_planet,
+            planet_id,
+            ship_cargo_size
+        )
+    }
 
     sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
 
@@ -244,6 +258,7 @@ def calculate_best_optimal_trade_by_planet_v2(data: Data):
             "sell_planet_id": None,
             "money": 0,
             "ticks": 0,
+            "amount": 0,
         }
 
         for resource_id, resource in planet.resources.items():
@@ -260,6 +275,7 @@ def calculate_best_optimal_trade_by_planet_v2(data: Data):
                 "resource_id": resource_id,
                 "sell_planet_id":optimalTrade[0][0],
                 "distance": optimalTrade[4],
+                "amount": resource.amount,
             }
 
             if trade_by_resource[resource_id]["mpt"] > best_trade["mpt"]:
@@ -406,9 +422,20 @@ def get_trading_commands(data: Data, player_id):
 
         # print("trade option", trade_option)
 
-        planetsToExclude.append(trade_option['planet_id'])
+        # UPDATE PLANET AMOUNT
+        ship_amount = get_ship_cargo_size(ship)
+        current_planet_amount = optimal_trades_by_planet[trade_option['planet_id']]['best_trade']['amount']
+        new_amount_for_resource = current_planet_amount - ship_amount
+
+        # UPDATE AMOUNT
+        optimal_trades_by_planet[trade_option['planet_id']]['best_trade']['amount'] = new_amount_for_resource
+        optimal_trades_by_planet[trade_option['planet_id']]['resource_trades'][trade_option['resource_id']]['amount'] = new_amount_for_resource
+
+        # OR EXCLUDE PLANET
+        # planetsToExclude.append(trade_option['planet_id'])
+
         commands[shipId] = {
-            "amount": 10,
+            "amount": ship_amount,
             "resource": trade_option['resource_id'],
             "target": trade_option['planet_id'],
             "type": 'trade'
