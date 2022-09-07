@@ -28,9 +28,11 @@ def count_money_per_tick_from_position_to_planet(resource_id, start_position, pl
     if resource.sell_price:
         resource_price = resource.sell_price
     
-    money_per_ticks = (resource_price * amount) / ticks
+    money = resource_price * amount
 
-    return money_per_ticks
+    money_per_ticks = money / ticks
+
+    return (money_per_ticks, ticks, money, distance)
 
 def count_money_per_tick(ship: Ship, planet: Planet, resource_id_to_sell: str, amount = 10):
     distance = countDistanceShips(ship, planet)
@@ -143,7 +145,11 @@ def find_optimal_buy_option(ship, data, planetsToExclude, trades_by_planet):
 
     for i in range(5):
         current_planet = sortedPlanets[i]
-        current_mpt = trades_by_planet[current_planet[0]]['best_trade']['mpt']
+        distance_ship_planet = count_distance_between_positions(ship.position, current_planet[1].position)
+        best_trade = trades_by_planet[current_planet[0]]['best_trade']
+        current_mpt_planet_to_planet = best_trade['mpt']
+        mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / best_trade['distance']
+        current_mpt = current_mpt_planet_to_planet / mpt_ship_to_planet_mult
         if current_mpt > best_mpt:
             best_mpt = current_mpt
             target_planet = current_planet
@@ -153,7 +159,6 @@ def find_optimal_buy_option(ship, data, planetsToExclude, trades_by_planet):
         "resource_id": trades_by_planet[target_planet[0]]['best_trade']['resource_id']
     }
 
-# TODO:
 def calculate_best_optimal_trade_by_planet(data: Data):
     trades_by_planet = {}
     for planet_id, planet in data.planets.items():
@@ -161,7 +166,10 @@ def calculate_best_optimal_trade_by_planet(data: Data):
         best_trade = {
             "resource_id": None,
             "mpt": 0,
+            "distance": 0,
             "sell_planet_id": None,
+            "money": 0,
+            "ticks": 0,
         }
 
         for resource_id, resource in planet.resources.items():
@@ -173,8 +181,11 @@ def calculate_best_optimal_trade_by_planet(data: Data):
             optimalTrade = find_optimal_sell_option_for_resource(data, resource_id, planet.position)
             trade_by_resource[resource_id] = {
                 "mpt": optimalTrade[1],
+                "ticks": optimalTrade[2],
+                "money": optimalTrade[3],
                 "resource_id": resource_id,
-                "sell_planet_id":optimalTrade[0][0]
+                "sell_planet_id":optimalTrade[0][0],
+                "distance": optimalTrade[4],
             }
 
             if trade_by_resource[resource_id]["mpt"] > best_trade["mpt"]:
@@ -219,12 +230,22 @@ def find_optimal_sell_option_for_resource(data, resource_id, position, amount = 
     
     result_planet = None
     best_mpt = 0
+    best_ticks = 0
+    best_money = 0
+    best_distance = 0
 
     for planet_id, planet in planets_whos_buying.items():
-        current_planet_mpt = count_money_per_tick_from_position_to_planet(resource_id, position, planet, amount, expected_speed)
-        if current_planet_mpt > best_mpt or result_planet == None:
-            best_mpt = current_planet_mpt
+        current_planet_mpt_info = count_money_per_tick_from_position_to_planet(resource_id, position, planet, amount, expected_speed)
+        mpt = current_planet_mpt_info[0]
+        ticks = current_planet_mpt_info[1]
+        money = current_planet_mpt_info[2]
+        distance = current_planet_mpt_info[3]
+        if mpt > best_mpt or result_planet == None:
+            best_mpt = mpt
             result_planet = (planet_id, planet)
+            best_ticks = ticks
+            best_money = money
+            best_distance = distance
 
     # sorted_planets_by_mpt = sorted(
     #     planets_whos_buying.items(),
@@ -232,7 +253,7 @@ def find_optimal_sell_option_for_resource(data, resource_id, position, amount = 
     #     reverse=True
     # )
 
-    return (result_planet, best_mpt)
+    return (result_planet, best_mpt, best_ticks, best_money, best_distance)
 
 def orderRanges(ranges):
     return sorted(ranges.items(), key=lambda x: x[1]['diff'], reverse=True)
