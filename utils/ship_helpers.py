@@ -7,7 +7,7 @@ from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
 from space_tycoon_client.models.destination import Destination
 # from space_tycoon_client.models.target import Target
-from utils.general import countDistanceShips
+from utils.general import countDistanceShips, SharedComms
 
 
 def get_distance_ships_ms_extra(ship1: Ship, ship2: Ship):
@@ -30,14 +30,14 @@ def get_my_ships(data: Data, player_id: str, include_ms: bool = True) -> Dict:
 
 def get_enemy_attack_ships(data: Data, player_id: str, include_ms: bool = True) -> Dict:
     return {ship_id: ship for ship_id, ship in data.ships.items() if
-            ship.player != player_id and ship.ship_class in ["1" if include_ms else "X", "4", "5"]}
+            ship.player not in [player_id] + SharedComms().allied_players and ship.ship_class in ["1" if include_ms else "X", "4", "5"]}
 
 
 def get_enemy_ships(data: Data, player_id: str, class_filter_list: list = []) -> Dict:
     if not class_filter_list:
         class_filter_list = [str(x) for x in range(1, 8)]
     return {ship_id: ship for ship_id, ship in data.ships.items() if
-            ship.player != player_id and ship.ship_class in class_filter_list}
+            ship.player not in [player_id] + SharedComms().allied_players and ship.ship_class in class_filter_list}
 
 
 def get_mothership(data: Data, player_id: str) -> Dict:

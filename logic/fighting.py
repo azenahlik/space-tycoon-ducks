@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
     """Mothership control"""
     commands = {}
-
+    if not SharedComms().allied_players:
+        SharedComms().add_allied_players(data, "amazon")
+    print(f"Ignoring {SharedComms().allied_players}")
     # Init
     my_attack_ships: Dict[Ship] = get_my_attack_ships(data, player_id)
     ms = [ship_id for ship_id, ship in my_attack_ships.items() if ship.ship_class == "1"]
@@ -42,6 +44,8 @@ def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
             chosen_enemy_ships: Dict[Ship] = get_enemy_ships(data, player_id)
             no_enemy_attack_ships = True
             SharedComms().galaxy_at_peace = True
+    else:
+        SharedComms().galaxy_at_peace = False
     # Get closest ships from the targeted category
     closest_filtered_enemy_ships = get_closest_ships(data, player_id, mothership, chosen_enemy_ships)
     player_data = [data.players[x] for x in data.players if x == player_id][0]

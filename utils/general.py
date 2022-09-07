@@ -3,6 +3,7 @@ from math import sqrt
 from space_tycoon_client.models.ship import Ship
 from utils.patterns import Singleton
 import logging
+from space_tycoon_client.models.data import Data
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +31,12 @@ class SharedComms(metaclass=Singleton):
         self.mothership_distance_from_enemies = 1
         self.past_mothership_positions = []
         self._fighter_regen_enabled = False
+        self.allied_players = []
+
+    def add_allied_players(self, data: Data, player_name):
+        player_ids = [player_id for player_id, player in data.players.items() if player.name == player_name]
+        if player_ids:
+            self.allied_players.append(player_ids[0])
 
     @property
     def fighter_regen_enabled(self) -> bool:

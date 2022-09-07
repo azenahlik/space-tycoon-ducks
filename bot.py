@@ -87,7 +87,7 @@ class Game:
                 else:
                     raise e
             except Exception as e:
-                logger.info(f"!!! EXCEPTION !!! Game logic error {e}")
+                logger.exception(f"!!! EXCEPTION !!! Game logic error {e}", exc_info=True)
                 traceback.print_exc()
 
     def game_logic(self):
