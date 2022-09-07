@@ -1,6 +1,5 @@
 #host: "localhost"
 host: "https://space-tycoon.garage-trip.cz"
-#host: "?"
 user: "ducks"
 password: "ducklings"
 logging_config: "log/logging.ini"

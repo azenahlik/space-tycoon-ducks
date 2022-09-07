@@ -79,7 +79,6 @@ def canBeTradeCommandFullfiled(ship, data):
     
 
     if command_type == 'buy':
-        print('BUY CHECK', planet_resource.amount < target_amount, planet_resource.buy_price == None, ship.position[0] == ship.prev_position[0] and ship.position[1] == ship.prev_position[1])
         if planet_resource.amount < target_amount:
             return False
         elif planet_resource.buy_price == None:
@@ -134,34 +133,30 @@ def findTradingOption(ship, data, planetsToExclude):
         "resource_id": getResourceWithLowestPrice(target_planet[1].resources)
     }
 
-def find_optimal_buy_option(ship, data, planetsToExclude):
+def find_optimal_buy_option(ship, data, planetsToExclude, trades_by_planet):
     planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if key not in planetsToExclude and hasPlanetResourcesToSell(planet)}
 
-    # sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
-
-    # for planet_touple in planetsWithTradingOptions:
-
-
-    # print(sortedPlanets)
+    sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
 
     target_planet = sortedPlanets[0]
+    best_mpt = 0
 
+    for i in range(5):
+        current_planet = sortedPlanets[i]
+        current_mpt = trades_by_planet[current_planet[0]]['best_trade']['mpt']
+        if current_mpt > best_mpt:
+            best_mpt = current_mpt
+            target_planet = current_planet
+    
     return {
         "planet_id": target_planet[0],
-        "resource_id": getResourceWithLowestPrice(target_planet[1].resources)
+        "resource_id": trades_by_planet[target_planet[0]]['best_trade']['resource_id']
     }
 
 # TODO:
 def calculate_best_optimal_trade_by_planet(data: Data):
     trades_by_planet = {}
     for planet_id, planet in data.planets.items():
-        # best_mpt_13 = 0;
-        # best_mpt_13_planet_touple = list(data.planets.items())[0]
-        # best_mpt_13_resource = None
-        # best_mpt_18 = 0;
-        # best_mpt_18_planet_touple = best_mpt_13_planet_touple
-        # best_mpt_18_resource = None
-
         trade_by_resource = {}
         best_trade = {
             "resource_id": None,
@@ -170,7 +165,7 @@ def calculate_best_optimal_trade_by_planet(data: Data):
         }
 
         for resource_id, resource in planet.resources.items():
-            print(resource_id, resource)
+            # print(resource_id, resource)
             if resource.buy_price == None or resource.amount < 10:
                 continue
             
@@ -189,6 +184,7 @@ def calculate_best_optimal_trade_by_planet(data: Data):
             "best_trade": best_trade,
             "resource_trades": trade_by_resource
         }
+    return trades_by_planet
 
 def findSellOption(ship, data):
     resourceIdToSell = list(ship.resources.keys())[0]
@@ -287,7 +283,7 @@ def planetsInrange(planets, position, maxDistance):
 
 def get_trading_commands(data: Data, player_id):
     # TODO
-    # optimal_trades_by_planet = calculate_best_optimal_trade_by_planet(data)
+    optimal_trades_by_planet = calculate_best_optimal_trade_by_planet(data)
 
     # ship filtering
     my_traders: Dict[Ship] = {
@@ -352,7 +348,11 @@ def get_trading_commands(data: Data, player_id):
     #     }
 
     for shipId, ship in traders_without_cargo.items():
-        trade_option = findTradingOption(ship, data, planetsToExclude)
+        # trade_option = findTradingOption(ship, data, planetsToExclude)
+
+        trade_option = find_optimal_buy_option(ship, data, planetsToExclude, optimal_trades_by_planet)
+
+        # print("trade option", trade_option)
 
         planetsToExclude.append(trade_option['planet_id'])
         commands[shipId] = {
