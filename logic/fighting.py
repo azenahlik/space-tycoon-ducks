@@ -95,8 +95,9 @@ def get_fighter_fighting_commands(data: Data, player_id: str, aggro_distance: in
             enemy_trade_ships = get_enemy_ships(data, player_id, ['2', '3', '7'])
             for attack_ship in my_attack_ships_without_ms:
                 closest_filtered_enemy_ships = get_closest_ships(data, player_id, {ship_id: my_attack_ships_without_ms[ship_id] for ship_id in my_attack_ships_without_ms}, enemy_trade_ships)
-                commands[attack_ship] = AttackCommand(list(closest_filtered_enemy_ships[0].keys())[0])
-                logger.info(f'Fighter {attack_ship} is going crazy!')
+                if len(closest_filtered_enemy_ships) > 0:
+                    commands[attack_ship] = AttackCommand(list(closest_filtered_enemy_ships[0].keys())[0])
+                    logger.info(f'Fighter {attack_ship} is going crazy!')
 
     return commands
 

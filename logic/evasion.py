@@ -12,7 +12,7 @@ def normalize_vector(vector):
     vector_size = math.sqrt(
         vector[0]**2 + vector[1]**2
     )
-    vector_size = math.max(vector_size, 1)
+    vector_size = max(vector_size, 1)
     return [vector[0] / vector_size, vector[1] / vector_size];
 
 
