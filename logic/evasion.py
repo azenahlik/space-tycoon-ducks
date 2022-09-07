@@ -12,7 +12,7 @@ def normalize_vector(vector):
     vector_size = math.sqrt(
         vector[0]**2 + vector[1]**2
     )
-    return [vector[0] / vector_size, vector[1] / vector_size];
+    return [vector[0] / vector_size, vector[1] / vector_size]  # Division by zero
 
 
 def select_enemy_ships_in_radius_by_distance(trader: Ship, enemy_battle_ships: Dict):

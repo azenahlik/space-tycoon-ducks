@@ -121,12 +121,12 @@ class Game:
         commands.update(fixing_commands)
 
         # Construction Commands
-        construction_commands = get_fighter_construction_commands(self.data, self.player_id, 3)
+        construction_commands = get_fighter_construction_commands(self.data, self.player_id, 1)
         commands.update(construction_commands)
 
         # Evasion
-        evasion_commands = get_evasion_commands(self.data, self.player_id)
-        commands.update(evasion_commands)
+        # evasion_commands = get_evasion_commands(self.data, self.player_id)
+        # commands.update(evasion_commands)
 
         # # Trade Commands
         trade_commands = get_trading_commands(self.data, self.player_id)
