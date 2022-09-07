@@ -32,6 +32,39 @@ class SharedComms(metaclass=Singleton):
         self.past_mothership_positions = []
         self._fighter_regen_enabled = False
         self.allied_players = []
+        self.planet_distances = {}
+        self.current_season = None
+
+    def populate_planets(self, data: Data):
+        """
+        If not calculated or season is changed -> callculate all distances between planets
+        Distances are used for further computation of optimal trading
+        """
+        if self.current_season == None or self.current_season != data.current_tick.season or len(self.planet_distances.keys()) == 0:
+            self.current_season = data.current_tick.season
+        else:
+            # ALL CALCULATED - USE CACHE
+            return
+
+        # calculate planet distances
+        for planet_id, planet in data.planets.items():
+            if not (planet_id in self.planet_distances):
+                self.planet_distances[planet_id] = {}
+            
+            for target_planet_id, target_planet in data.planets.items():
+                if planet_id == target_planet_id:
+                    continue
+                if target_planet_id in self.planet_distances[planet_id]:
+                    continue
+
+                distance = count_distance_between_positions(planet.position, target_planet.position)
+
+                self.planet_distances[planet_id][target_planet_id] = distance
+
+                if not (target_planet_id in self.planet_distances):
+                    self.planet_distances[target_planet_id] = {}
+
+                self.planet_distances[target_planet_id][planet_id] = distance
 
     def add_allied_players(self, data: Data, player_name):
         player_ids = [player_id for player_id, player in data.players.items() if player.name == player_name]
