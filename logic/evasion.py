@@ -12,7 +12,8 @@ def normalize_vector(vector):
     vector_size = math.sqrt(
         vector[0]**2 + vector[1]**2
     )
-    return [vector[0] / vector_size, vector[1] / vector_size]  # Division by zero
+    vector_size = math.max(vector_size, 1)
+    return [vector[0] / vector_size, vector[1] / vector_size];
 
 
 def select_enemy_ships_in_radius_by_distance(trader: Ship, enemy_battle_ships: Dict):
@@ -38,6 +39,11 @@ def get_evasion_commands(data: Data, player_id):
             nearest_enemy_ship_position = nearest_enemy_touple[1].position
             vector_x = trader.position[0] - nearest_enemy_ship_position[0]
             vector_y = trader.position[1] - nearest_enemy_ship_position[1]
+
+            # if on same position then dont evade just continue trade
+            if vector_x == 0 and vector_y == 0:
+                continue
+
             normalized = normalize_vector([vector_x, vector_y])
             evade_position = [
                 trader.position[0] + math.ceil(40 * normalized[0]),
