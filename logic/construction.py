@@ -45,7 +45,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
     # Are we at peace?
     if SharedComms().galaxy_at_peace:
         minimal_money_for_trade_ships_to_buy = 800000
-        expected_number_of_haulers = (shippers_count - 10) // 2
+        expected_number_of_haulers = max((shippers_count - 10) // 2, 0)
 
     # Mothership Init
     ms = [ship_id for ship_id, ship in my_ships.items() if ship.ship_class == MOTHERSHIP]
@@ -63,7 +63,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand(HAULER)
         # Build shipper army
-        elif player_data.net_worth.money >= minimal_money_for_trade_ships_to_buy and fighters_count >= min_fighters and expected_number_of_haulers == haulers_count:
+        elif player_data.net_worth.money >= minimal_money_for_trade_ships_to_buy and fighters_count >= min_fighters and expected_number_of_haulers <= haulers_count:
             logger.info(f"Building trading ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand(SHIPPER)
@@ -73,7 +73,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand(FIGHTER)
         else:
-            logger.info(f'No need to build! Money remaining: {player_data.net_worth.money}')
+            logger.info(f'No need to build! Money remaining: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}')
             return commands
     else:
         logger.info("No MS to build fighters!")
