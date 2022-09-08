@@ -178,10 +178,10 @@ def findTradingOption(ship, data, planetsToExclude):
         "resource_id": getResourceWithLowestPrice(target_planet[1].resources)
     }
 
-def find_optimal_buy_option(ship, data, planetsToExclude, trades_by_planet):
+def find_optimal_buy_option(ship, data, planets_to_exclude, trades_by_planet, num_of_nearest_planets_to_compare = 5):
     ship_cargo_size = get_ship_cargo_size(ship)
     planetsWithTradingOptions = {
-        planet_id: planet for planet_id, planet in data.planets.items() if planet_id not in planetsToExclude and hasPlanetResourcesToSell_v2(
+        planet_id: planet for planet_id, planet in data.planets.items() if planet_id not in planets_to_exclude and hasPlanetResourcesToSell_v2(
             trades_by_planet,
             planet_id,
             ship_cargo_size
@@ -193,7 +193,7 @@ def find_optimal_buy_option(ship, data, planetsToExclude, trades_by_planet):
     target_planet = sortedPlanets[0]
     best_mpt = 0
 
-    for i in range(5):
+    for i in range(num_of_nearest_planets_to_compare):
         current_planet = sortedPlanets[i]
         distance_ship_planet = count_distance_between_positions(ship.position, current_planet[1].position)
         best_trade = trades_by_planet[current_planet[0]]['best_trade']
@@ -410,17 +410,17 @@ def get_trading_commands(data: Data, player_id):
 
     commands = {}
     planetsToExclude = []
-    resources_to_exclude = []
-    traders_with_new_command = []
-
-    # print(optimal_trades_by_planet)
 
     for shipId, ship in traders_without_cargo.items():
         # trade_option = findTradingOption(ship, data, planetsToExclude)
 
-        trade_option = find_optimal_buy_option(ship, data, planetsToExclude, optimal_trades_by_planet)
-
-        # print("trade option", trade_option)
+        trade_option = find_optimal_buy_option(
+            ship,
+            data,
+            planetsToExclude,
+            optimal_trades_by_planet,
+            10
+        )
 
         # UPDATE PLANET AMOUNT
         ship_amount = get_ship_cargo_size(ship)
