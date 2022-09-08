@@ -57,21 +57,25 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
             logger.info(f"Building fighter ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand(FIGHTER)
+            SharedComms().spend_money(1500000)
         # build haulers
-        elif player_data.net_worth.money >= minimal_money_for_trade_ships_to_buy and fighters_count >= min_fighters and SharedComms().galaxy_at_peace:
+        elif player_data.net_worth.money >= minimal_money_for_trade_ships_to_buy and fighters_count >= min_fighters and expected_number_of_haulers > haulers_count:
             logger.info(f"Building hauler trading ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand(HAULER)
+            SharedComms().spend_money(600000)
         # Build shipper army
         elif player_data.net_worth.money >= minimal_money_for_trade_ships_to_buy and fighters_count >= min_fighters and expected_number_of_haulers <= haulers_count:
             logger.info(f"Building trading ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand(SHIPPER)
+            SharedComms().spend_money(300000)
         # Build more fighters after domination if necessary to quell unrest in galaxy
-        elif fighters_count < min_fighters and player_data.net_worth.money >= 1500000 and SharedComms().galaxy_at_peace:
+        elif fighters_count < min_fighters and player_data.net_worth.money >= 1600000 and SharedComms().galaxy_at_peace:
             logger.info(f"Building fighters. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand(FIGHTER)
+            SharedComms().spend_money(1500000)
         else:
             logger.info(f'No need to build! Money remaining: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}')
             return commands

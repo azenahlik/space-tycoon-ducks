@@ -22,6 +22,7 @@ from space_tycoon_client.models.static_data import StaticData
 from space_tycoon_client.rest import ApiException
 import logging.config
 from logic.evasion import get_evasion_commands
+from utils.general import SharedComms
 
 CONFIG_FILE = "config.yml"
 
@@ -103,6 +104,9 @@ class Game:
         logger.info(f"I have {len(my_ships)} ships ({pretty_ship_type_cnt})")
 
         commands = {}
+
+        player_data = [self.data.players[x] for x in self.data.players if x == self.player_id][0]
+        SharedComms().set_start_money(player_data.net_worth.money)
 
         # Attack Commands
         if self.tick > 30:

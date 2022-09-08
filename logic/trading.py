@@ -509,6 +509,7 @@ def find_optimal_sell_option_for_resource_from_planet(data, resource_id, planet_
 
 
 def get_trading_commands(data: Data, player_id):
+    money = SharedComms().money
     # OLD
     # optimal_trades_by_planet = calculate_best_optimal_trade_by_planet(data)
     
@@ -565,6 +566,16 @@ def get_trading_commands(data: Data, player_id):
         planet_id = trade_option['planet_id']
         resource_id = trade_option['resource_id']
 
+        planet_resource_amount = data.planets[planet_id].resources[resource_id].amount
+        planet_resource_price = data.planets[planet_id].resources[resource_id].buy_price
+
+        amount_to_buy = min(planet_resource_amount, ship_amount)
+        trade_price = (amount_to_buy * planet_resource_price)
+
+        # check if there is enough money
+        if trade_price > money:
+            continue
+
         # UPDATE PLANET AMOUNT
         current_planet_amount = optimal_trades_by_planet[planet_id]['resources'][resource_id]['amount']
         new_amount_for_resource = current_planet_amount - ship_amount
@@ -575,10 +586,11 @@ def get_trading_commands(data: Data, player_id):
         # OR EXCLUDE PLANET
         planetsToExclude.append(trade_option['planet_id'])
 
-        planet_resource_amount = data.planets[planet_id].resources[resource_id].amount
+        # update money
+        money = money - trade_price
 
         commands[shipId] = {
-            "amount": min(planet_resource_amount, ship_amount),
+            "amount": amount_to_buy,
             "resource": resource_id,
             "target": planet_id,
             "type": 'trade'
@@ -609,6 +621,8 @@ def get_trading_commands(data: Data, player_id):
             "target": target_planet[0],
             "type": 'trade'
         }
+
+    SharedComms().spend_money(money)
 
     return commands
     

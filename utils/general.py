@@ -36,6 +36,13 @@ class SharedComms(metaclass=Singleton):
         self.allied_players = []
         self.planet_distances = {}
         self.current_season = None
+        self.money = 0
+
+    def set_start_money(self, money):
+        self.money = money
+
+    def spend_money(self, price):
+        self.money = self.money - price
 
     def populate_planets(self, data: Data):
         """
