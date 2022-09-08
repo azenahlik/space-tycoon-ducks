@@ -1,6 +1,7 @@
 from math import sqrt
 
 from space_tycoon_client.models.ship import Ship
+from logic.utils.ships import HAULER, SHIPPER
 from utils.patterns import Singleton
 import logging
 from space_tycoon_client.models.data import Data
@@ -19,10 +20,11 @@ def countDistanceShips(ship1: Ship, ship2: Ship):
     return sqrt((ship1.position[0] - ship2.position[0])**2+(ship1.position[1] - ship2.position[1])**2) + extra
 
 def get_ship_speed(ship: Ship):
-    if ship.ship_class == "3":
+    if ship.ship_class == HAULER:
         return 13
-    elif ship.ship_class == "3":
+    elif ship.ship_class == SHIPPER:
         return 18
+    return 10
 
 
 class SharedComms(metaclass=Singleton):

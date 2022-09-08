@@ -180,6 +180,7 @@ def findTradingOption(ship, data, planetsToExclude):
 
 def find_optimal_buy_option(ship, data, planets_to_exclude, trades_by_planet, num_of_nearest_planets_to_compare = 5):
     ship_cargo_size = get_ship_cargo_size(ship)
+    is_hauler = ship_cargo_size == 40
     planetsWithTradingOptions = {
         planet_id: planet for planet_id, planet in data.planets.items() if planet_id not in planets_to_exclude and hasPlanetResourcesToSell_v2(
             trades_by_planet,
@@ -193,17 +194,36 @@ def find_optimal_buy_option(ship, data, planets_to_exclude, trades_by_planet, nu
     target_planet = sortedPlanets[0]
     best_mpt = 0
 
-    for i in range(num_of_nearest_planets_to_compare):
+    for i in range(len(sortedPlanets)):
         current_planet = sortedPlanets[i]
         distance_ship_planet = count_distance_between_positions(ship.position, current_planet[1].position)
-        best_trade = trades_by_planet[current_planet[0]]['best_trade']
-        current_mpt_planet_to_planet = best_trade['mpt']
-        mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / best_trade['distance']
-        current_mpt = current_mpt_planet_to_planet / mpt_ship_to_planet_mult
-        if current_mpt > best_mpt:
-            best_mpt = current_mpt
-            target_planet = current_planet
+
+        if is_hauler:
+            # HAULER
+            best_trade = trades_by_planet[current_planet[0]]['hauler_best_trade']
+            best_trade_hauler_info = best_trade['hauler']
+
+            current_mpt_planet_to_planet = best_trade_hauler_info['mpt']
+            mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / best_trade['distance']
+            current_mpt = current_mpt_planet_to_planet / mpt_ship_to_planet_mult
+            if current_mpt > best_mpt:
+                best_mpt = current_mpt
+                target_planet = current_planet
+
+        else: 
+            best_trade = trades_by_planet[current_planet[0]]['best_trade']
+            current_mpt_planet_to_planet = best_trade['mpt']
+            mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / best_trade['distance']
+            current_mpt = current_mpt_planet_to_planet / mpt_ship_to_planet_mult
+            if current_mpt > best_mpt:
+                best_mpt = current_mpt
+                target_planet = current_planet
     
+    if is_hauler:
+        return {
+            "planet_id": target_planet[0],
+            "resource_id": trades_by_planet[target_planet[0]]['hauler_best_trade']['resource_id']
+        }
     return {
         "planet_id": target_planet[0],
         "resource_id": trades_by_planet[target_planet[0]]['best_trade']['resource_id']
@@ -259,6 +279,17 @@ def calculate_best_optimal_trade_by_planet_v2(data: Data):
             "money": 0,
             "ticks": 0,
             "amount": 0,
+            "hauler": None
+        }
+        hauler_best_trade = {
+            "resource_id": None,
+            "mpt": 0,
+            "distance": 0,
+            "sell_planet_id": None,
+            "money": 0,
+            "ticks": 0,
+            "amount": 0,
+            "hauler": None
         }
 
         for resource_id, resource in planet.resources.items():
@@ -276,13 +307,18 @@ def calculate_best_optimal_trade_by_planet_v2(data: Data):
                 "sell_planet_id":optimalTrade[0][0],
                 "distance": optimalTrade[4],
                 "amount": resource.amount,
+                "hauler": optimalTrade[5]
             }
 
             if trade_by_resource[resource_id]["mpt"] > best_trade["mpt"]:
                 best_trade = trade_by_resource[resource_id]
+            
+            if hauler_best_trade["hauler"] == None  or trade_by_resource[resource_id]["hauler"]["mpt"] > hauler_best_trade["hauler"]["mpt"]:
+                hauler_best_trade = trade_by_resource[resource_id]
         
         trades_by_planet[planet_id] = {
             "best_trade": best_trade,
+            "hauler_best_trade": hauler_best_trade,
             "resource_trades": trade_by_resource
         }
     return trades_by_planet
@@ -309,8 +345,9 @@ def find_nearest_sell_option(ship, data, radius_for_best_sell):
 
 def find_optimal_sell_option(ship, data):
     resourceIdToSell = list(ship.resources.keys())[0]
+    ship_cargo_size = get_ship_cargo_size(ship)
     planetsWithTradingOptions = {key: planet for key, planet in data.planets.items() if isPlanetBuyingResource(planet, resourceIdToSell)}
-    sorted_planets_by_mpt = sorted(planetsWithTradingOptions.items(), key=lambda x: count_money_per_tick_from_ship_to_planet(ship, x[1], resourceIdToSell), reverse=True)
+    sorted_planets_by_mpt = sorted(planetsWithTradingOptions.items(), key=lambda x: count_money_per_tick_from_ship_to_planet(ship, x[1], resourceIdToSell, ship_cargo_size), reverse=True)
 
     return sorted_planets_by_mpt[0]
 
@@ -348,6 +385,12 @@ def find_optimal_sell_option_for_resource_from_planet(data, resource_id, planet_
     best_money = 0
     best_distance = 0
 
+    hauler_result_planet_id = None
+    hauler_best_mpt = 0
+    hauler_best_ticks = 0
+    hauler_best_money = 0
+    hauler_best_distance = 0
+
     for current_planet_id, planet in planets_whos_buying.items():
         resource_sell_price = planet.resources[resource_id].sell_price
 
@@ -359,17 +402,40 @@ def find_optimal_sell_option_for_resource_from_planet(data, resource_id, planet_
 
 
         current_planet_mpt_info = count_money_per_tick_base(distance, resource_sell_price, amount, expected_speed)
+
         mpt = current_planet_mpt_info[0]
         ticks = current_planet_mpt_info[1]
         money = current_planet_mpt_info[2]
+
         if mpt > best_mpt or result_planet == None:
             best_mpt = mpt
             result_planet = (current_planet_id, planet)
             best_ticks = ticks
             best_money = money
             best_distance = distance
+        
+        # hauler
+        # print('HAULER MPT')
+        current_planet_mpt_info_hauler = count_money_per_tick_base(distance, resource_sell_price, 40, 13)
 
-    return (result_planet, best_mpt, best_ticks, best_money, best_distance)
+        hauler_mpt = current_planet_mpt_info_hauler[0]
+        hauler_ticks = current_planet_mpt_info_hauler[1]
+        hauler_money = current_planet_mpt_info_hauler[2]
+        
+        if mpt > best_mpt or result_planet == None:
+            hauler_best_mpt = hauler_mpt
+            hauler_result_planet_id = current_planet_id
+            hauler_best_ticks = hauler_ticks
+            hauler_best_money = money
+            hauler_best_distance = hauler_money
+
+    return (result_planet, best_mpt, best_ticks, best_money, best_distance, {
+        "mpt": hauler_best_mpt,
+        "money": hauler_best_money,
+        "ticks": hauler_best_ticks,
+        "sell_planet_id": hauler_result_planet_id,
+        "distance": hauler_best_distance
+    })
 
 
 def get_trading_commands(data: Data, player_id):
@@ -406,13 +472,15 @@ def get_trading_commands(data: Data, player_id):
         ship_id: ship for ship_id, ship in traders_without_command.items() if hasResourceWithAmount(ship)
     }
 
-    traders_without_cargo_keys = list(traders_without_cargo.keys())
-
     commands = {}
     planetsToExclude = []
 
     for shipId, ship in traders_without_cargo.items():
         # trade_option = findTradingOption(ship, data, planetsToExclude)
+
+        ship_amount = get_ship_cargo_size(ship)
+        # planets_to_choose_from = 1
+
 
         trade_option = find_optimal_buy_option(
             ship,
@@ -422,17 +490,17 @@ def get_trading_commands(data: Data, player_id):
             10
         )
 
-        # UPDATE PLANET AMOUNT
-        ship_amount = get_ship_cargo_size(ship)
-        current_planet_amount = optimal_trades_by_planet[trade_option['planet_id']]['best_trade']['amount']
-        new_amount_for_resource = current_planet_amount - ship_amount
+        # UPDATE PLANET AMOUNT TODO: FOR HAULERS
+        
+        # current_planet_amount = optimal_trades_by_planet[trade_option['planet_id']]['best_trade']['amount']
+        # new_amount_for_resource = current_planet_amount - ship_amount
 
-        # UPDATE AMOUNT
-        optimal_trades_by_planet[trade_option['planet_id']]['best_trade']['amount'] = new_amount_for_resource
-        optimal_trades_by_planet[trade_option['planet_id']]['resource_trades'][trade_option['resource_id']]['amount'] = new_amount_for_resource
+        # # UPDATE AMOUNT
+        # optimal_trades_by_planet[trade_option['planet_id']]['best_trade']['amount'] = new_amount_for_resource
+        # optimal_trades_by_planet[trade_option['planet_id']]['resource_trades'][trade_option['resource_id']]['amount'] = new_amount_for_resource
 
         # OR EXCLUDE PLANET
-        # planetsToExclude.append(trade_option['planet_id'])
+        planetsToExclude.append(trade_option['planet_id'])
 
         commands[shipId] = {
             "amount": ship_amount,
@@ -446,6 +514,7 @@ def get_trading_commands(data: Data, player_id):
         # print('SELL COMMAND FOR', shipId)
         resourceIdToSell = list(ship.resources.keys())[0]
 
+        ship_amount = min(get_ship_cargo_size(ship), ship.resources[resourceIdToSell]['amount'])
         # DEBUG
         # print('RESOURCE RANGES', resources_ranges[resourceIdToSell])
 
@@ -460,7 +529,7 @@ def get_trading_commands(data: Data, player_id):
 
         # print('SELLING TO', target_planet)
         commands[shipId] = {
-            "amount": -10,
+            "amount": -ship_amount,
             "resource": resourceIdToSell,
             "target": target_planet[0],
             "type": 'trade'
