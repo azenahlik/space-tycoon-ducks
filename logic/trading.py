@@ -502,8 +502,10 @@ def get_trading_commands(data: Data, player_id):
         # OR EXCLUDE PLANET
         planetsToExclude.append(trade_option['planet_id'])
 
+        planet_resource_amount = data.planets[trade_option['planet_id']].resources[trade_option['resource_id']].amount
+
         commands[shipId] = {
-            "amount": ship_amount,
+            "amount": min(planet_resource_amount, ship_amount),
             "resource": trade_option['resource_id'],
             "target": trade_option['planet_id'],
             "type": 'trade'
