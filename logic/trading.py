@@ -520,7 +520,7 @@ def get_trading_commands(data: Data, player_id):
         optimal_trades_by_planet[planet_id]['resources'][resource_id]['amount'] = new_amount_for_resource
 
         # OR EXCLUDE PLANET
-        # planetsToExclude.append(trade_option['planet_id'])
+        planetsToExclude.append(trade_option['planet_id'])
 
         planet_resource_amount = data.planets[planet_id].resources[resource_id].amount
 
