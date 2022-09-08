@@ -558,6 +558,7 @@ def get_trading_commands(data: Data, player_id):
             data,
             planetsToExclude,
             optimal_trades_by_planet,
+            100
         )
 
         if trade_option == None:
