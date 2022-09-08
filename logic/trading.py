@@ -78,6 +78,19 @@ def count_money_per_tick_base(distance, sell_price, speed = 18, amount = 10):
 
     return (money_per_ticks, ticks, money, distance)
 
+def count_money_per_tick_with_buy_price(distance, buy_price, sell_price, speed = 18, amount = 10):
+    ticks = math.ceil(distance / speed) + 1
+    resource_price = sell_price
+
+    if not resource_price:
+        resource_price = 0
+    
+    money = max((resource_price * amount) - (buy_price * amount), 0)
+
+    money_per_ticks = money / ticks
+
+    return (money_per_ticks, ticks, money, distance)
+
 def count_money_per_tick_from_ship_to_planet(ship: Ship, planet: Planet, resource_id_to_sell: str, amount = 10):
     distance = countDistanceShips(ship, planet)
     resource = planet.resources[resource_id_to_sell]
@@ -195,6 +208,7 @@ def findTradingOption(ship, data, planetsToExclude):
     }
 
 def find_optimal_buy_option(ship, data, planets_to_exclude, trades_by_planet, num_of_nearest_planets_to_compare = -1):
+    planet_distances = SharedComms().planet_distances
     ship_cargo_size = get_ship_cargo_size(ship)
     is_hauler = ship_cargo_size == 40
 
@@ -236,12 +250,20 @@ def find_optimal_buy_option(ship, data, planets_to_exclude, trades_by_planet, nu
             if best_trade == None or best_trade['resource_id'] == None:
                 logger.error(f'Something is wrong {current_planet[0]} {best_trade}')
                 continue
-            
+
+            sell_planet_id = best_trade['sell_planet_id']
+
+            if not sell_planet_id:
+                logger.error(f'MISSING PLANET ID {current_planet[0]} {best_trade}')
+
+
+            distance_between_planets = planet_distances[current_planet[0]][sell_planet_id]
+
             best_trade_hauler_info = best_trade['hauler']
 
             current_mpt_planet_to_planet = best_trade_hauler_info['mpt']
-            mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / max(best_trade['distance'], 1)
-            current_mpt = current_mpt_planet_to_planet / mpt_ship_to_planet_mult
+            mpt_ship_to_planet_mult = (distance_between_planets + distance_ship_planet) / max(distance_between_planets, 1)
+            current_mpt = current_mpt_planet_to_planet / max(mpt_ship_to_planet_mult, 1)
             if current_mpt > best_mpt:
                 best_mpt = current_mpt
                 target_planet = current_planet
@@ -251,9 +273,18 @@ def find_optimal_buy_option(ship, data, planets_to_exclude, trades_by_planet, nu
             if best_trade == None or best_trade['resource_id'] == None:
                 logger.error(f'Something is wrong {current_planet[0]} {best_trade}')
                 continue
+
+            sell_planet_id = best_trade['sell_planet_id']
+
+            if not sell_planet_id:
+                logger.error(f'MISSING PLANET ID {current_planet[0]} {best_trade}')
+
+            distance_between_planets = planet_distances[current_planet[0]][sell_planet_id]
+
+
             current_mpt_planet_to_planet = best_trade['mpt']
-            mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / max(best_trade['distance'], 1)
-            current_mpt = current_mpt_planet_to_planet / mpt_ship_to_planet_mult
+            mpt_ship_to_planet_mult = (distance_between_planets + distance_ship_planet) / max(distance_between_planets, 1)
+            current_mpt = current_mpt_planet_to_planet / max(mpt_ship_to_planet_mult, 1)
             if current_mpt > best_mpt:
                 best_mpt = current_mpt
                 target_planet = current_planet
@@ -332,11 +363,12 @@ def calculate_best_optimal_trade_by_planet_v2(data: Data):
 
         for resource_id, resource in planet.resources.items():
             # print(resource_id, resource)
-            if resource.buy_price == None or resource.amount < 10:
+            if resource.buy_price == None:
                 continue
             
+            # resource.buy_price
             # only buyable
-            optimalTrade = find_optimal_sell_option_for_resource_from_planet(data, resource_id, planet_id)
+            optimalTrade = find_optimal_sell_option_for_resource_from_planet(data, resource_id, planet_id, resource.buy_price)
             trade_by_resource[resource_id] = {
                 "mpt": optimalTrade[1],
                 "ticks": optimalTrade[2],
@@ -344,7 +376,6 @@ def calculate_best_optimal_trade_by_planet_v2(data: Data):
                 "resource_id": resource_id,
                 "sell_planet_id":optimalTrade[0][0],
                 "distance": optimalTrade[4],
-                # "amount": resource.amount,
                 "hauler": optimalTrade[5]
             }
 
@@ -414,7 +445,7 @@ def find_optimal_sell_option_for_resource(data, resource_id, position, amount = 
 
     return (result_planet, best_mpt, best_ticks, best_money, best_distance)
 
-def find_optimal_sell_option_for_resource_from_planet(data, resource_id, planet_id, amount = 10, expected_speed = 18):
+def find_optimal_sell_option_for_resource_from_planet(data, resource_id, planet_id, buy_price, amount = 10, expected_speed = 18):
     planet_distances = SharedComms().planet_distances
     planets_whos_buying = {key: planet for key, planet in data.planets.items() if isPlanetBuyingResource(planet, resource_id)}
     
@@ -440,7 +471,7 @@ def find_optimal_sell_option_for_resource_from_planet(data, resource_id, planet_
         distance = planet_distances[planet_id][current_planet_id]
 
 
-        current_planet_mpt_info = count_money_per_tick_base(distance, resource_sell_price, amount, expected_speed)
+        current_planet_mpt_info = count_money_per_tick_with_buy_price(distance, buy_price, resource_sell_price, amount, expected_speed)
 
         mpt = current_planet_mpt_info[0]
         ticks = current_planet_mpt_info[1]
@@ -455,7 +486,7 @@ def find_optimal_sell_option_for_resource_from_planet(data, resource_id, planet_
         
         # hauler
         # print('HAULER MPT')
-        current_planet_mpt_info_hauler = count_money_per_tick_base(distance, resource_sell_price, 40, 13)
+        current_planet_mpt_info_hauler = count_money_per_tick_with_buy_price(distance, buy_price, resource_sell_price, 40, 13)
 
         hauler_mpt = current_planet_mpt_info_hauler[0]
         hauler_ticks = current_planet_mpt_info_hauler[1]
