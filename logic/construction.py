@@ -44,7 +44,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
 
     # Are we at peace?
     if SharedComms().galaxy_at_peace:
-        minimal_money_for_trade_ships_to_buy = 800000
+        minimal_money_for_trade_ships_to_buy = 1000000
         expected_number_of_haulers = max((shippers_count - 10) // 2, 0)
 
     # Mothership Init
