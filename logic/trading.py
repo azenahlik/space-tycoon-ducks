@@ -206,6 +206,16 @@ def find_optimal_buy_option(ship, data, planets_to_exclude, trades_by_planet, nu
         )
     }
 
+    if len(planetsWithTradingOptions) == 0:
+        planetsWithTradingOptions = {
+            planet_id: planet for planet_id, planet in data.planets.items() if planet_id not in planets_to_exclude and hasPlanetResourcesToSell(
+                planet,
+                1,
+            )
+        }
+    if len(planetsWithTradingOptions) == 0:
+        return None
+
     sortedPlanets = sorted(planetsWithTradingOptions.items(), key=lambda x: countDistance(ship, x[1]))
 
     target_planet = sortedPlanets[0]
@@ -508,6 +518,9 @@ def get_trading_commands(data: Data, player_id):
             planetsToExclude,
             optimal_trades_by_planet,
         )
+
+        if trade_option == None:
+            continue
 
         planet_id = trade_option['planet_id']
         resource_id = trade_option['resource_id']
