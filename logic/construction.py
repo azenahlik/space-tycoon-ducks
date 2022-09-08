@@ -58,7 +58,7 @@ def get_fighter_construction_commands(data: Data, player_id: str, min_fighters: 
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand(FIGHTER)
         # build haulers
-        elif player_data.net_worth.money >= minimal_money_for_trade_ships_to_buy and fighters_count >= min_fighters and expected_number_of_haulers > haulers_count:
+        elif player_data.net_worth.money >= minimal_money_for_trade_ships_to_buy and fighters_count >= min_fighters and SharedComms().galaxy_at_peace:
             logger.info(f"Building hauler trading ships. Money: {player_data.net_worth.money}, GaP: {SharedComms().galaxy_at_peace}")
             mothership_id: str = ms[0]
             commands[mothership_id] = ConstructCommand(HAULER)

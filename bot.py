@@ -103,13 +103,6 @@ class Game:
         logger.info(f"I have {len(my_ships)} ships ({pretty_ship_type_cnt})")
 
         commands = {}
-        for ship_id, ship in my_ships.items():
-            pass
-            # if ship.command is not None:
-            #     continue
-            # random_planet_id = random.choice(list(self.data.planets.keys()))
-            # print(f"sending {ship_id} to {self.data.planets[random_planet_id].name}({random_planet_id})")
-            # commands[ship_id] = MoveCommand(type="move", destination=Destination(target=random_planet_id))
 
         # Attack Commands
         if self.tick > 30:
