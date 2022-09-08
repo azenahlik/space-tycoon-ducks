@@ -1,5 +1,4 @@
 import math
-import resource
 from logic.utils.ships import HAULER, SHIPPER
 from space_tycoon_client.models.data import Data
 from space_tycoon_client.models.ship import Ship
@@ -7,6 +6,9 @@ from space_tycoon_client.models.planet import Planet
 from utils.general import SharedComms, countDistanceShips, count_distance_between_positions, get_ship_speed
 from utils.ship_helpers import get_ship_cargo_size
 from typing import Dict
+import logging
+
+logger = logging.getLogger(__name__)
 
 # TEST HELPER FUNCTIONS
 def test_is_trade_same(tradeA, tradeB):
@@ -231,10 +233,14 @@ def find_optimal_buy_option(ship, data, planets_to_exclude, trades_by_planet, nu
         if is_hauler:
             # HAULER
             best_trade = trades_by_planet[current_planet[0]]['hauler_best_trade']
+            if best_trade == None or best_trade['resource_id'] == None:
+                logger.error(f'Something is wrong {current_planet[0]} {best_trade}')
+                continue
+            
             best_trade_hauler_info = best_trade['hauler']
 
             current_mpt_planet_to_planet = best_trade_hauler_info['mpt']
-            mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / best_trade['distance']
+            mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / max(best_trade['distance'], 1)
             current_mpt = current_mpt_planet_to_planet / mpt_ship_to_planet_mult
             if current_mpt > best_mpt:
                 best_mpt = current_mpt
@@ -242,8 +248,11 @@ def find_optimal_buy_option(ship, data, planets_to_exclude, trades_by_planet, nu
 
         else: 
             best_trade = trades_by_planet[current_planet[0]]['best_trade']
+            if best_trade == None or best_trade['resource_id'] == None:
+                logger.error(f'Something is wrong {current_planet[0]} {best_trade}')
+                continue
             current_mpt_planet_to_planet = best_trade['mpt']
-            mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / best_trade['distance']
+            mpt_ship_to_planet_mult = (best_trade['distance'] + distance_ship_planet) / max(best_trade['distance'], 1)
             current_mpt = current_mpt_planet_to_planet / mpt_ship_to_planet_mult
             if current_mpt > best_mpt:
                 best_mpt = current_mpt
