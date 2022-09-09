@@ -110,15 +110,21 @@ class Game:
 
         # Attack Commands
         if self.tick > 30:
-            ms_attack_commands = get_ms_fighting_commands(self.data, self.player_id)
+            ms_attack_commands = get_ms_fighting_commands(self.data, self.player_id, True)
             commands.update(ms_attack_commands)
             fighter_attack_commands = get_fighter_fighting_commands(self.data, self.player_id, 300)
             commands.update(fighter_attack_commands)
         fixing_commands = get_repair_commands(self.data, self.player_id)
         commands.update(fixing_commands)
 
+        needed_fighters = 1
+
+        # Prepared for extra condition
+        # if self.tick > 1800:
+        #     needed_fighters = 10
+
         # Construction Commands
-        construction_commands = get_fighter_construction_commands(self.data, self.player_id, 1)
+        construction_commands = get_fighter_construction_commands(self.data, self.player_id, needed_fighters)
         commands.update(construction_commands)
 
         # Evasion

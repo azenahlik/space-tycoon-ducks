@@ -17,7 +17,7 @@ def normalize_vector(vector):
 
 
 def select_enemy_ships_in_radius_by_distance(trader: Ship, enemy_battle_ships: Dict):
-    enemy_ships_in_radius = {ship_id: ship for ship_id, ship in enemy_battle_ships.items() if countDistanceShips(trader, ship) < 60}
+    enemy_ships_in_radius = {ship_id: ship for ship_id, ship in enemy_battle_ships.items() if countDistanceShips(trader, ship) < 350}
     return sorted(enemy_ships_in_radius.items(), key=lambda x: countDistanceShips(trader, x[1]))
 
 
@@ -34,6 +34,12 @@ def get_evasion_commands(data: Data, player_id):
     for trader_id, trader in my_traders.items():
         enemy_ships = select_enemy_ships_in_radius_by_distance(trader, enemy_attak_ships)
         if len(enemy_ships) > 0:
+            # Prepared code for commision of traders if we dont have any fighters left and no ms
+            # if countDistanceShips(trader, enemy_ships[0][1]) < 30:
+            #     commands[trader_id] = {
+            #         "type": "decommission"
+            #     }
+            #     continue
             # evasion tactics
             nearest_enemy_touple = enemy_ships[0]
             nearest_enemy_ship_position = nearest_enemy_touple[1].position
