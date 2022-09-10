@@ -18,17 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 
-def get_ms_fighting_commands(data: Data, player_id: str, allow_allied_players = False) -> dict:
+def get_ms_fighting_commands(data: Data, player_id: str) -> dict:
     """Mothership control"""
     commands = {}
-    if not SharedComms().allied_players and allow_allied_players:
-        SharedComms().add_allied_players(data, "amazon")
-    elif len(SharedComms().allied_players) > 0 and not allow_allied_players:
-        SharedComms().allied_players = []
-
-    if SharedComms().allied_players:
-        print(f"Ignoring {SharedComms().allied_players}")
-
+    # if not SharedComms().allied_players:
+    #     SharedComms().add_allied_players(data, "amazon")
+    # print(f"Ignoring {SharedComms().allied_players}")
     # Init
     my_attack_ships: Dict[Ship] = get_my_attack_ships(data, player_id)
     ms = [ship_id for ship_id, ship in my_attack_ships.items() if ship.ship_class == "1"]
