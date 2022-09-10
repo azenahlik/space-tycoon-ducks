@@ -1,6 +1,8 @@
-# Example python space tycoon bot
+# Description
 
-! Fork this repository !
+An bot written for https://github.com/gdg-garage/space-tycoon
+
+# Setup
 
 Install dependencies
 ```bash
